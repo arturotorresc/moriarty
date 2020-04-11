@@ -1,0 +1,69 @@
+player jugadorUno;
+player jugadorDos;
+
+var enemies_shot : int = 0;
+
+function shoot_if_enemy() : bool {
+	var could_shoot? : bool;
+	var could_reload? : bool;
+	if (enemy?(jugadorUno)) {
+		if (not (gun_loaded?(jugadorUno))) {
+			could_reload? = reload_gun(jugadorUno);
+		}
+		if (could_reload?) {
+			could_shoot? = shoot(jugadorUno);
+		} else {
+			could_shoot? = false;
+		}
+		return could_shoot?;
+	} else if (enemy?(jugadorDos)) {
+		if (not (gun_loaded?(jugadorDos))) {
+			could_reload? = reload_gun(jugadorDos);
+		}
+		if (could_reload?) {
+			could_shoot? = shoot(jugadorDos);
+		} else {
+			could_shoot? = false;
+		}
+		return could_shoot?;
+	}
+	return false;
+}
+
+main() {
+	var could_shoot? : bool;
+	var have_bullets_jugadorUno? : bool = true;
+	var have_bullets_jugadorDos? : bool = true;
+	loop(have_bullets_jugadorUno? and have_bullets_jugadorDos?) {
+		// Mueve a jugadorUno en la misma dirección hasta que tope e intenta disparar si hay enemigos.
+		loop(move(jugadorUno)) {
+			could_shoot? = shoot_if_enemy();
+			if (could_shoot?) {
+				speak(jugadorUno, "shot an enemy!");
+				enemies_shot = enemies_shot + 1;
+				have_bullets_jugadorUno = reload(jugadorUno);
+			}
+			if (not gun_loaded?(jugadorUno)) {
+				have_bullets_jugadorUno? = false;
+			} 
+		}
+
+		// Mueve a jugadorUno en la misma dirección hasta que tope e intenta disparar si hay enemigos.
+		loop (move(jugadorDos)) {
+			could_shoot? = shoot_if_enemy();
+			if (could_shoot?) {
+				speak(jugadorDos, "shot an enemy!");
+				enemies_shot = enemies_shot + 1;
+				have_bullets_jugadorDos? = reload(jugadorDos);
+			}
+			if (not gun_loaded?(jugadorDos)) {
+				have_bullets_jugadorDos? = false;
+			} 
+		}
+		rotate(jugadorUno);
+		rotate(jugadorDos);
+	}
+
+	speak(jugadorUno, "i have no bullets");
+	speak(jugadorDos, "i have no bullets");
+}
