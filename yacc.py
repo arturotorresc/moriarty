@@ -51,7 +51,9 @@ def p_func_params_2(p):
 
 def p_func_type(p):
   ''' func-type : type
-                | VOID '''
+                | VOID
+                | LBRACKET type RBRACKET
+  '''
 
 def p_type(p):
   ''' type : STRING
@@ -118,7 +120,7 @@ def p_exp(p):
   '''
 
 def p_exp_1(p):
-  ''' exp-1 : SIGN term
+  ''' exp-1 : SIGN exp
             | empty
   '''
 
@@ -127,7 +129,7 @@ def p_term(p):
   '''
 
 def p_term_1(p):
-  ''' term-1 : OPERATOR factor
+  ''' term-1 : OPERATOR term
              | empty
   '''
 

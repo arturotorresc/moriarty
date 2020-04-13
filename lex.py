@@ -42,7 +42,7 @@ def t_BOOLEAN(t):
     return t
 
 def t_RELOP(t):
-    r'(?:and|or|<=|>=|<|>|!=)'
+    r'(?:and|or|<=|>=|<|>|!=|==)'
     return t
 
 def t_INTEGER(t):

@@ -1,0 +1,38 @@
+player jugadorUno;
+
+var my_counter : int;
+
+function emptyReturn() : void {
+  my_counter = my_counter + 1;
+  if (not myBool?) {
+    return;
+  } else {
+    speak(jugadorUno, "no enter if");
+  }
+  speak(jugadorUno, "harambe");
+}
+
+var my_second_counter : int;
+
+# Params are arrays and return value is array of strings
+function arrayParams(hola[] : int, bye[] : bool, nice[] : string) : [string] {
+  if (hola[0] == 3012) {
+    emptyReturn();
+  } else if (hola[2 + 3 * 1 + 1 / 4 + (3 + 12 / 43)] != 120) {
+    move(jugadorUno);
+  }
+  nice = ["bye", "nu"];
+  return "nobabes";
+}
+
+function noBody(i : int) : int {}
+
+main() {
+  my_second_counter = my_second_counter + 1;
+  var my_array[1] : int;
+  my_array[0] = 4;
+  var hola[5] : int = [1,2,3,4,5];
+  var bye[3] : bool = [true, false, true];
+  var nice[2] : string = ["nah", "bruh"];
+  arrayParams(hola, bye, nice);
+}
