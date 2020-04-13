@@ -134,7 +134,7 @@ def p_factor(p):
   ''' factor : LPAREN expression RPAREN
              | constant
              | factor-num
-             | sign factor-num
+             | SIGN factor-num
   '''
 
 def p_factor_num(p):
@@ -161,7 +161,7 @@ def p_function_call(p):
                     | SHOOT LPAREN ID RPAREN
                     | JUMP LPAREN ID RPAREN
                     | ENEMY LPAREN ID RPAREN
-                    | RELOAD_FUN LPAREN ID RPAREN
+                    | RELOAD_GUN LPAREN ID RPAREN
                     | GUN_LOADED LPAREN ID RPAREN
                     | ID LPAREN function-call-1
   '''
@@ -197,7 +197,7 @@ def p_list_const_1(p):
   ''' list-const-1 : expression list-const-2
   '''
 
-def p_list_const_1(p):
+def p_list_const_2(p):
   ''' list-const-2 : COMMA list-const-1
                    | empty
   '''
