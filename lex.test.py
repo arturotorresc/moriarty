@@ -23,8 +23,7 @@ gun_loaded?
 void
 not
 return
-true
-false
+main
 '''
 
 token_data = '''
@@ -77,22 +76,25 @@ a123
 camelCase
 __private__
 
+true
+false
+
+[
+]
 
 '''
 
 lexer.input(reserved_data + " " + token_data)
 
 # Order matters in this list. Items should appear as they do in [reserved_data]
-test_reserved = ['if', 'else', 'loop', 'player', 'var', 'function',
-  'string', 'int', 'bool' , 'move', 'speak', 'rotate', 
-  'shoot', 'jump', 'enemy', 'reload_gun', 'gun_loaded', 'void', 'not',
-  'return', 'boolean', 'boolean']
+test_reserved = list(lex.reserved.values())
 
 # Order matters in this list. Items should appear as they do in [token_data]
 test_tokens = ['str', 'str', 'str', 'integer', 'integer', 'integer', 'sign', 'sign',
   'operator', 'operator', 'relop', 'relop', 'relop', 'relop', 'relop', 'relop', 'relop',
   'comma', 'lparen', 'rparen', 'lcurl', 'rcurl', 'equals', 'dots', 'semicolon', 'id', 'id',
-  'id','id','id','id','id','id', 'id', 'id', 'id', 'id']
+  'id','id','id','id','id','id', 'id', 'id', 'id', 'id', 'boolean', 'boolean', 'lbracket',
+  'rbracket']
 
 # Test reserved keywords
 print("\n====>Testing reserved keywords...\n")
