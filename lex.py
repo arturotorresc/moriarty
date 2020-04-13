@@ -7,7 +7,7 @@ reserved = {'if': 'IF', 'else': 'ELSE', 'loop': 'LOOP', 'player': 'PLAYER', 'var
             'void': 'VOID', 'not': 'NOT', 'return': 'RETURN', 'main': 'MAIN'}
 tokens = ['BOOLEAN', 'SIGN', 'OPERATOR', 'RELOP', 'COMMA', 'SEMICOLON',
           'LPAREN', 'RPAREN', 'LCURL', 'RCURL', 'LBRACKET', 'RBRACKET' , 'EQUALS', 'DOTS',
-          'INTEGER', 'STR', 'ID'] + list(reserved.values())
+          'INTEGER', 'STR', 'COMMENT', 'ID'] + list(reserved.values())
 
 t_STR = r'".*\"'
 t_SIGN = r'(?:\+|-)'
@@ -28,6 +28,10 @@ t_ignore = ' \t'
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
+
+def t_COMMENT(t):
+    r'\#.*'
+    pass
 
 def t_BOOLEAN(t):
     r'true|false'

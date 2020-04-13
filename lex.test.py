@@ -82,6 +82,10 @@ false
 [
 ]
 
+# ignora comentario
+#
+# a + b != 10 function hola()
+
 '''
 
 lexer.input(reserved_data + " " + token_data)

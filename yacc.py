@@ -73,7 +73,8 @@ def p_statement(p):
                 | assignment
                 | loop
                 | return
-                | function-call SEMICOLON '''
+                | function-call SEMICOLON
+                | variable-decl '''
 
 def p_conditional(p):
   ''' conditional : IF LPAREN expression RPAREN block conditional-1 '''
@@ -211,6 +212,7 @@ def p_empty(p):
   pass
 
 def p_error(p):
+  print(p)
   print("Syntax error on input!")
 
 parser = yacc.yacc()
