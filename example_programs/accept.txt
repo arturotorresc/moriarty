@@ -35,7 +35,7 @@ main() {
 	var have_bullets_jugadorUno? : bool = true;
 	var have_bullets_jugadorDos? : bool = true;
 	loop(have_bullets_jugadorUno? and have_bullets_jugadorDos?) {
-		// Mueve a jugadorUno en la misma dirección hasta que tope e intenta disparar si hay enemigos.
+		# Mueve a jugadorUno en la misma dirección hasta que tope e intenta disparar si hay enemigos.
 		loop(move(jugadorUno)) {
 			could_shoot? = shoot_if_enemy();
 			if (could_shoot?) {
@@ -48,7 +48,7 @@ main() {
 			} 
 		}
 
-		// Mueve a jugadorUno en la misma dirección hasta que tope e intenta disparar si hay enemigos.
+		# Mueve a jugadorUno en la misma dirección hasta que tope e intenta disparar si hay enemigos.
 		loop (move(jugadorDos)) {
 			could_shoot? = shoot_if_enemy();
 			if (could_shoot?) {

@@ -4,10 +4,10 @@ reserved = {'if': 'IF', 'else': 'ELSE', 'loop': 'LOOP', 'player': 'PLAYER', 'var
             'string': 'STRING', 'int': 'INT', 'bool': 'BOOL' ,
             'move': 'MOVE', 'speak': 'SPEAK', 'rotate': 'ROTATE', 'shoot': 'SHOOT', 'jump': 'JUMP',
             'enemy?': 'ENEMY', 'reload_gun': 'RELOAD_GUN', 'gun_loaded?': 'GUN_LOADED',
-            'void': 'VOID', 'not': 'NOT', 'return': 'RETURN'}
+            'void': 'VOID', 'not': 'NOT', 'return': 'RETURN', 'main': 'MAIN'}
 tokens = ['BOOLEAN', 'SIGN', 'OPERATOR', 'RELOP', 'COMMA', 'SEMICOLON',
-          'LPAREN', 'RPAREN', 'LCURL', 'RCURL', 'EQUALS', 'DOTS',
-          'INTEGER', 'STR', 'ID'] + list(reserved.values())
+          'LPAREN', 'RPAREN', 'LCURL', 'RCURL', 'LBRACKET', 'RBRACKET' , 'EQUALS', 'DOTS',
+          'INTEGER', 'STR', 'COMMENT', 'ID'] + list(reserved.values())
 
 t_STR = r'".*\"'
 t_SIGN = r'(?:\+|-)'
@@ -17,6 +17,8 @@ t_LPAREN = r'\('
 t_RPAREN = r'\)'
 t_LCURL = r'\{'
 t_RCURL = r'\}'
+t_LBRACKET = r'\['
+t_RBRACKET = r'\]'
 t_EQUALS = r'\='
 t_DOTS = r'\:'
 t_SEMICOLON = r'\;'
@@ -27,6 +29,10 @@ def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
+def t_COMMENT(t):
+    r'\#.*'
+    pass
+
 def t_BOOLEAN(t):
     r'true|false'
     if t.value == 'true':
@@ -36,7 +42,7 @@ def t_BOOLEAN(t):
     return t
 
 def t_RELOP(t):
-    r'(?:and|or|<=|>=|<|>|!=)'
+    r'(?:and|or|<=|>=|<|>|!=|==)'
     return t
 
 def t_INTEGER(t):
