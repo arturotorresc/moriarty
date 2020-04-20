@@ -1,8 +1,5 @@
 from collections import deque
 
-# ========================== CONSTANTS ===========================
-GLOBAL_SCOPE = "$global"
-
 # ========================== PRIVATE INTERFACE ======================
 
 class VariableTable:
@@ -32,14 +29,10 @@ class FunctionTable:
     return self.__return_type
 
 class Scope:
-  def __init__(self, parent, name):
+  def __init__(self, parent):
     self.__parent = parent
-    self.__name = name
     self.__functions = {}
     self.__variables = {}
-  
-  def name(self):
-    return self.__name
   
   def parent(self):
     return self.__parent
@@ -108,9 +101,9 @@ class SymbolTable:
     return SymbolTable.__instance
   
   # Pushes a new scope to the top of the stack
-  def push_scope(self, name):
+  def push_scope(self):
     parent_scope = self.get_scope()
-    self.__scope.append(Scope(parent_scope, name))
+    self.__scope.append(Scope(parent_scope))
 
   # Gets the top of the scope stack.
   def get_scope(self):
@@ -130,4 +123,4 @@ class SymbolTable:
       SymbolTable.__instance = self
       # Initialize the global scope
       self.__scope = deque()
-      self.__scope.append(Scope(None, GLOBAL_SCOPE))
+      self.__scope.append(Scope(None))
