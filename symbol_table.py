@@ -1,3 +1,5 @@
+from collections import deque
+
 # ========================== CONSTANTS ===========================
 GLOBAL_SCOPE = "$global"
 
@@ -18,24 +20,16 @@ class VariableTable:
   def value(self):
     return self.__value
 
-
 class FunctionTable:
   def __init__(self, name, return_type):
     self.__name = name
     self.__return_type = return_type
-    self.__scope = None
   
   def name(self):
     return self.__name
   
   def return_type(self):
     return self.__return_type
-  
-  def scope(self):
-    return self.__scope
-  
-  def set_scope(self, parent, name):
-    self.__scope = Scope(parent, name)
 
 class Scope:
   def __init__(self, parent, name):
@@ -47,20 +41,35 @@ class Scope:
   def name(self):
     return self.__name
   
+  def parent(self):
+    return self.__parent
+  
   def functions(self):
     return self.__functions
   
   def vars(self):
     return self.__variables
   
+  # Gets a function in the current scope or any parent scope.
   def get_function(self, name):
     if name in self.functions():
       return self.functions()[name]
+    temp_parent = self.parent()
+    while temp_parent is not None:
+      if name in temp_parent.functions():
+        return temp_parent.functions()[name]
+      temp_parent = temp_parent.parent()
     return None
   
+  # Gets a variable in the current scope or any parent scope.
   def get_var(self, name):
     if name in self.vars():
       return self.vars()[name]
+    temp_parent = self.parent()
+    while temp_parent is not None:
+      if name in temp_parent.vars():
+        return temp_parent.vars()[name]
+      temp_parent = temp_parent.parent()
     return None
   
   # Adds a function to the current scope
@@ -98,10 +107,20 @@ class SymbolTable:
       SymbolTable()
     return SymbolTable.__instance
   
-  # Gets the global scope
-  def global_scope(self):
-    return self.__scope
-  
+  # Pushes a new scope to the top of the stack
+  def push_scope(self, name):
+    parent_scope = self.get_scope()
+    self.__scope.append(Scope(parent_scope, name))
+
+  # Gets the top of the scope stack.
+  def get_scope(self):
+    if self.__scope:
+      return self.__scope[-1]
+    
+  # Returns and pops current scope from scope stack.
+  def pop_scope(self):
+    return self.__scope.pop()
+
   # ================ PRIVATE METHODS =================
 
   def __init__(self):
@@ -110,4 +129,5 @@ class SymbolTable:
     else:
       SymbolTable.__instance = self
       # Initialize the global scope
-      self.__scope = Scope(None, GLOBAL_SCOPE)
+      self.__scope = deque()
+      self.__scope.append(Scope(None, GLOBAL_SCOPE))
