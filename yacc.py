@@ -2,6 +2,8 @@ import ply.yacc as yacc
 
 from lex import tokens
 
+from symbol_table import SymbolTable
+
 def p_program(p):
   ''' program : init function-and-vars main '''
 
@@ -32,7 +34,22 @@ def p_variable_decl_2(p):
                       | SEMICOLON '''
 
 def p_function(p):
-  ''' function : FUNCTION ID LPAREN func-params-or-empty RPAREN DOTS func-type block '''
+  ''' function : FUNCTION ID register-function-name LPAREN func-params-or-empty RPAREN DOTS func-type register-function-type block '''
+  s_table = SymbolTable.get_instance()
+  s_table.pop_scope()
+
+# EMBEDDED ACTION
+def p_register_function_name(p):
+  ''' register-function-name :'''
+  s_table = SymbolTable.get_instance()
+  s_table.get_scope().add_function(p[-1])
+
+# EMBEDDED ACTION
+def p_register_function_type(p):
+  ''' register-function-type :'''
+  s_table = SymbolTable.get_instance()
+  s_table.get_scope().get_last_saved_func().return_type = p[-1]
+  s_table.push_scope()
 
 def p_func_params_or_empty(p):
   ''' func-params-or-empty : func-params
@@ -54,11 +71,17 @@ def p_func_type(p):
                 | VOID
                 | LBRACKET type RBRACKET
   '''
+  if p[1] == '[':
+    # TODO: Cambiar lógica para cuando la función regresa arreglos de cierto tipo
+    p[0] = p[2]
+  else:
+    p[0] = p[1]
 
 def p_type(p):
   ''' type : STRING
            | INT
            | BOOL '''
+  p[0] = p[1]
 
 def p_block(p):
   ''' block : LCURL block-1 RCURL '''

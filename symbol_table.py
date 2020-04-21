@@ -49,6 +49,7 @@ class Scope:
     self.__functions = {}
     self.__variables = {}
     self.__last_saved_var = None
+    self.__last_saved_func = None
   
   def parent(self):
     return self.__parent
@@ -61,6 +62,9 @@ class Scope:
   
   def get_last_saved_var(self):
     return self.__last_saved_var
+  
+  def get_last_saved_func(self):
+    return self.__last_saved_func
   
   # Gets a function in the current scope or any parent scope.
   def get_function(self, name):
@@ -90,6 +94,7 @@ class Scope:
       raise Exception('Function with identifier: "{}" already exists!'.format(name))
 
     self.__functions[name] = FunctionTable(name, return_type)
+    self.__last_saved_func = self.__functions[name]
   
   # Adds a variable to the current scope
   def add_variable(self, name, var_type = None):
