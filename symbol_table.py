@@ -11,11 +11,21 @@ class VariableTable:
   def name(self):
     return self.__name
   
+  @property
   def var_type(self):
     return self.__var_type
   
+  @var_type.setter
+  def var_type(self, value):
+    self.__var_type = value
+  
+  @property
   def value(self):
     return self.__value
+
+  @value.setter
+  def var_type(self, value):
+    self.__value = value
 
 class FunctionTable:
   def __init__(self, name, return_type):
@@ -25,14 +35,20 @@ class FunctionTable:
   def name(self):
     return self.__name
   
+  @property
   def return_type(self):
     return self.__return_type
+
+  @return_type.setter
+  def return_type(self, value):
+    self.__return_type = value
 
 class Scope:
   def __init__(self, parent):
     self.__parent = parent
     self.__functions = {}
     self.__variables = {}
+    self.__last_saved_var = None
   
   def parent(self):
     return self.__parent
@@ -42,6 +58,9 @@ class Scope:
   
   def vars(self):
     return self.__variables
+  
+  def get_last_saved_var(self):
+    return self.__last_saved_var
   
   # Gets a function in the current scope or any parent scope.
   def get_function(self, name):
@@ -77,7 +96,8 @@ class Scope:
     if name in self.vars():
       raise Exception('Variable with identifier: "{}" already exists!'.format(name))
     
-    self.__vars[name] = VariableTable(name, var_type)
+    self.__variables[name] = VariableTable(name, var_type)
+    self.__last_saved_var = self.__variables[name]
 
 
 # ======================= PUBLIC INTERFACE =====================
