@@ -24,7 +24,7 @@ class VariableTable:
     return self.__value
 
   @value.setter
-  def var_type(self, value):
+  def value(self, value):
     self.__value = value
 
 class FunctionTable:
