@@ -1,6 +1,7 @@
 import ply.yacc as yacc
 
 from lex import tokens
+from symbol_table import SymbolTable 
 
 def p_program(p):
   ''' program : init function-and-vars main '''
@@ -21,11 +22,23 @@ def p_main(p):
   ''' main : MAIN LPAREN RPAREN block '''
 
 def p_variable_decl(p):
-  ''' variable-decl : VAR ID variable-decl-1 '''
+  ''' variable-decl : VAR ID save_var variable-decl-1 '''
+
+# EMBEDDED ACTION
+def p_save_var(p):
+  ''' save_var :'''
+  symbol_table = SymbolTable.get_instance()
+  symbol_table.get_scope().add_variable(p[-1])
 
 def p_variable_decl_1(p):
-  ''' variable-decl-1 : LBRACKET INTEGER RBRACKET DOTS type variable-decl-2
-                      | DOTS type variable-decl-2 '''
+  ''' variable-decl-1 : LBRACKET INTEGER RBRACKET DOTS type save_var_type variable-decl-2
+                      | DOTS type save_var_type variable-decl-2 '''
+
+# EMBEDDED ACTION
+def p_save_var_type(p):
+  ''' save_var_type :'''
+  symbol_table = SymbolTable.get_instance()
+  symbol_table.get_scope().get_last_saved_var().var_type = p[-1]
 
 def p_variable_decl_2(p):
   ''' variable-decl-2 : EQUALS expression SEMICOLON
@@ -59,6 +72,7 @@ def p_type(p):
   ''' type : STRING
            | INT
            | BOOL '''
+  p[0] = p[1]
 
 def p_block(p):
   ''' block : LCURL block-1 RCURL '''
