@@ -1,7 +1,6 @@
 import ply.yacc as yacc
 
 from lex import tokens
-
 from symbol_table import SymbolTable
 
 def p_program(p):
