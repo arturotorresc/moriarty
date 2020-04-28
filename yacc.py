@@ -3,6 +3,9 @@ import ply.yacc as yacc
 from lex import tokens
 from symbol_table import SymbolTable
 from algorithms import attempt_create_quadruple
+from expression_handler import ExpressionHandler
+
+exp_handler = ExpressionHandler.get_instance()
 
 def p_program(p):
   ''' program : init function-and-vars main '''
@@ -168,7 +171,7 @@ def p_save_term_quad(p):
   attempt_create_quadruple(['+', '-'])
 
 def p_exp_1(p):
-  ''' exp-1 : SIGN exp
+  ''' exp-1 : SIGN push_op exp
             | empty
   '''
 
@@ -184,16 +187,31 @@ def p_save_factor_quad(p):
   attempt_create_quadruple(['*', '/'])
 
 def p_term_1(p):
-  ''' term-1 : OPERATOR term
+  ''' term-1 : OPERATOR push_op term
              | empty
   '''
 
+# EMBEDDED ACTION
+def p_push_op(p):
+  ''' push_op :'''
+  exp_handler.push_operator(p[-1])
+
 def p_factor(p):
-  ''' factor : LPAREN expression RPAREN
+  ''' factor : LPAREN push_par expression RPAREN pop_par
              | constant
              | factor-num
              | SIGN factor-num
   '''
+
+# EMBEDDED ACTION
+def p_push_par(p):
+  ''' push_par :'''
+  exp_handler.push_parenthesis()
+
+# EMBEDDED ACTION
+def p_pop_par(p):
+  ''' pop_par :'''
+  exp_handler.pop_parenthesis()
 
 def p_factor_num(p):
   ''' factor-num : numeric-constant
@@ -201,16 +219,28 @@ def p_factor_num(p):
   '''
 
 def p_constant(p):
-  ''' constant : BOOLEAN
+  ''' constant : BOOLEAN push_const
                | list-const
-               | string
+               | string push_const
   '''
 
 def p_numeric_constant(p):
-  ''' numeric-constant : INTEGER
-                       | ID
+  ''' numeric-constant : INTEGER push_const
+                       | ID push_var
                        | array-constant
   '''
+
+# EMBEDDED ACTION
+def p_push_const(p):
+  ''' push_const :'''
+
+# EMBEDDED ACTION
+def p_push_var(p):
+  ''' push_var :'''
+  s_table = SymbolTable.get_instance()
+  tvar = s_table.get_scope().get_var(p[-1])
+  if (tvar)
+    exp_handler.push_operand(tvar, tvar.var_type)
 
 def p_function_call(p):
   ''' function-call : MOVE LPAREN ID RPAREN
@@ -273,3 +303,6 @@ def p_error(p):
   print("Syntax error on input!")
 
 parser = yacc.yacc()
+
+f = open("example_programs/functions.txt", "r")
+ans = yacc.parse(f.read())
