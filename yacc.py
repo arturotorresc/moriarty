@@ -7,7 +7,13 @@ def p_program(p):
   ''' program : init function-and-vars main '''
 
 def p_init(p):
-  ''' init : PLAYER ID SEMICOLON init-1 '''
+  ''' init : PLAYER ID save_player SEMICOLON init-1 '''
+
+# EMBEDDED ACTION
+def p_save_player(p):
+  ''' save_player :'''
+  symbol_table = SymbolTable.get_instance()
+  symbol_table.get_scope().add_player(p[-1])
 
 def p_init_1(p):
   ''' init-1 : init
