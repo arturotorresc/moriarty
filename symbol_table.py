@@ -2,6 +2,28 @@ from collections import deque
 
 # ========================== PRIVATE INTERFACE ======================
 
+# To handle information about the player
+class PlayerTable:
+  def __init__(self, player_name, location):
+    self.__player_name = player_name
+    self.__location = location
+  
+  @property
+  def player_name(self):
+    return self.__player_name
+  
+  @property
+  def location(self):
+    return self.__location
+  
+  @player_name.setter
+  def player_name(self, player_name):
+    self.__player_name = player_name
+  
+  @location.setter
+  def location(self, location):
+    self.__location = location
+
 class VariableTable:
   def __init__(self, name, var_type):
     self.__name = name
@@ -48,6 +70,7 @@ class Scope:
     self.__parent = parent
     self.__functions = {}
     self.__variables = {}
+    self.__players = {}
     self.__last_saved_var = None
     self.__last_saved_func = None
   
@@ -59,6 +82,9 @@ class Scope:
   
   def vars(self):
     return self.__variables
+
+  def players(self):
+    return self.__players
   
   def get_last_saved_var(self):
     return self.__last_saved_var
@@ -88,6 +114,17 @@ class Scope:
       temp_parent = temp_parent.parent()
     return None
   
+  # Fetches the player with the given player_name.
+  def get_player(self, player_name):
+    if player_name in self.players():
+      return self.players()[player_name]
+    temp_parent = self.parent()
+    while temp_parent is not None:
+      if player_name in temp_parent.players():
+        return temp_parent.players()[player_name]
+      temp_parent = temp_parent.parent()
+    return None
+  
   # Adds a function to the current scope
   def add_function(self, name, return_type = None):
     if name in self.functions():
@@ -103,6 +140,13 @@ class Scope:
     
     self.__variables[name] = VariableTable(name, var_type)
     self.__last_saved_var = self.__variables[name]
+  
+  # Adds a player to the current scope.
+  def add_player(self, player_name, location = None):
+    if player_name in self.players():
+      raise Exception("Player with identifier: '{}' already exists!".format(player_name))
+    
+    self.__players[player_name] = PlayerTable(player_name, location)
 
 
 # ======================= PUBLIC INTERFACE =====================
