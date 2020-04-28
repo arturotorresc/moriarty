@@ -2,6 +2,7 @@ import ply.yacc as yacc
 
 from lex import tokens
 from symbol_table import SymbolTable
+from algorithms import attempt_create_quadruple
 
 def p_program(p):
   ''' program : init function-and-vars main '''
@@ -156,8 +157,15 @@ def p_expression_1(p):
   '''
 
 def p_exp(p):
-  ''' exp : term exp-1
+  ''' exp : term save-term-quad exp-1
   '''
+
+# EMBEDDED ACTION
+def p_save_term_quad(p):
+  ''' save-term-quad :'''
+  # We attempt to create a quadruple if current
+  # operator is + or -
+  attempt_create_quadruple(['+', '-'])
 
 def p_exp_1(p):
   ''' exp-1 : SIGN exp
@@ -165,8 +173,15 @@ def p_exp_1(p):
   '''
 
 def p_term(p):
-  ''' term : factor term-1
+  ''' term : factor save-factor-quad term-1
   '''
+
+# EMBEDDED ACTION
+def p_save_factor_quad(p):
+  ''' save-factor-quad :'''
+  # We attempt to create a quadruple if current
+  # operator is * or /
+  attempt_create_quadruple(['*', '/'])
 
 def p_term_1(p):
   ''' term-1 : OPERATOR term
