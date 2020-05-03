@@ -1,3 +1,4 @@
+# coding=utf-8
 import ply.yacc as yacc
 
 from lex import tokens
@@ -219,27 +220,41 @@ def p_factor_num(p):
   '''
 
 def p_constant(p):
-  ''' constant : BOOLEAN push_const
+  ''' constant : BOOLEAN push_bool
                | list-const
-               | string push_const
+               | string push_string
   '''
 
 def p_numeric_constant(p):
-  ''' numeric-constant : INTEGER push_const
+  ''' numeric-constant : INTEGER push_num
                        | ID push_var
                        | array-constant
   '''
 
 # EMBEDDED ACTION
-def p_push_const(p):
-  ''' push_const :'''
+def p_push_num(p):
+  ''' push_num :'''
+  s_table = SymbolTable.get_instance()
+  exp_handler.push_operand(p[-1], 'int')
+
+# EMBEDDED ACTION
+def p_push_string(p):
+  ''' push_string :'''
+  s_table = SymbolTable.get_instance()
+  exp_handler.push_operand(p[-1], 'string')
+
+# EMBEDDED ACTION
+def p_push_bool(p):
+  ''' push_bool :'''
+  s_table = SymbolTable.get_instance()
+  exp_handler.push_operand(p[-1], 'bool')
 
 # EMBEDDED ACTION
 def p_push_var(p):
   ''' push_var :'''
   s_table = SymbolTable.get_instance()
   tvar = s_table.get_scope().get_var(p[-1])
-  if (tvar)
+  if (tvar):
     exp_handler.push_operand(tvar, tvar.var_type)
 
 def p_function_call(p):
@@ -292,7 +307,7 @@ def p_list_const_2(p):
 
 def p_string(p):
   ''' string : STR'''
-  pass
+  p[0] = p[1]
 
 def p_empty(p):
   ''' empty : '''
@@ -303,6 +318,3 @@ def p_error(p):
   print("Syntax error on input!")
 
 parser = yacc.yacc()
-
-f = open("example_programs/functions.txt", "r")
-ans = yacc.parse(f.read())
