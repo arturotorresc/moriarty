@@ -1,0 +1,23 @@
+.console-container {
+  height: 100%;
+}
+
+.console-text {
+  background-color: black;
+  padding: 5px;
+  height: 100%;
+  width: 100%;
+  resize: none;
+  border: none;
+  color: rgb(17, 207, 17);
+  font-family: "VT323", monospace;
+  font-size: 20px;
+}
+
+.console-text:focus {
+  outline: none;
+}
+
+.console-text::placeholder {
+  color: rgb(15, 156, 15);
+}
