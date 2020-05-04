@@ -112,6 +112,6 @@ class ExpressionHandler:
   
   # Removes and pops top operand element
   def __pop_operand(self):
-    if not self.__operator_stack:
+    if not self.__operand_stack:
       raise Exception("Tried to pop operand but there are no operands")
     return self.__operand_stack.pop()

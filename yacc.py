@@ -120,12 +120,19 @@ def p_statements(p):
                  | empty '''
 
 def p_statement(p):
-  ''' statement : conditional
+  ''' statement : conditional exit-if-jump
                 | assignment
                 | loop
                 | return
                 | function-call SEMICOLON
                 | variable-decl '''
+
+# EMBEDDED ACTION
+def p_exit_if_jump(p):
+  ''' exit-if-jump :'''
+  jumps_stack = JumpsStack.get_instance()
+  pending_jump_quad = jumps_stack.pop_quad()
+  pending_jump_quad.set_jump(QuadrupleStack.next_quad_id())
 
 def p_conditional(p):
   ''' conditional : IF LPAREN expression push-if-jump RPAREN block conditional-1 '''
@@ -135,6 +142,8 @@ def p_push_if_jump(p):
   ''' push-if-jump :'''
   exp_handler = ExpressionHandler.get_instance()
   result = exp_handler.pop_operand()
+  print(result[0].name())
+  print(result[0].var_type)
   var, var_type = result
   if (var_type != 'bool'):
     raise SemanticError("Result of expression is not of type 'bool'. Found '{}' instead.".format(var_type))
@@ -149,8 +158,25 @@ def p_conditional_1(p):
                     | empty '''
 
 def p_conditional_2(p):
-  ''' conditional-2 : block
-                    | conditional '''
+  ''' conditional-2 : else-jump block
+                    | else-if-jump conditional '''
+
+# EMBEDDED ACTION
+def p_else_jump(p):
+  ''' else-jump :'''
+  inconditional_jump = Quadruple("GOTO", None, None, PendingJump())
+  quad_stack = QuadrupleStack.get_instance()
+  quad_stack.push_quad(inconditional_jump)
+  jumps_stack = JumpsStack.get_instance()
+  pending_jump_quad = jumps_stack.pop_quad()
+  pending_jump_quad.set_jump(QuadrupleStack.next_quad_id())
+
+# EMBEDDED ACTION
+def p_else_if_jump(p):
+  ''' else-if-jump :'''
+  jumps_stack = JumpsStack.get_instance()
+  pending_jump_quad = jumps_stack.pop_quad()
+  pending_jump_quad.set_jump(QuadrupleStack.next_quad_id())
 
 def p_assignment(p):
   ''' assignment : ID assignment-1'''
