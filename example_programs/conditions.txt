@@ -1,9 +1,15 @@
 player jugador;
 
 main() {
-  var a : int = 3;
-  var b : int = 3;
-  if (a < b) {
+  var a : bool = true;
+  var b : bool = false;
+  if (a) {
+    move(jugador);
+  } else if (b) {
+    move(jugador);
+  } else {
+    var v : int = (3 + 5 * 2);
     move(jugador);
   }
+  var j : int = (1 + 2 * 3 / 4);
 }

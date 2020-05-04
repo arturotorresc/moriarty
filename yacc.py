@@ -142,8 +142,6 @@ def p_push_if_jump(p):
   ''' push-if-jump :'''
   exp_handler = ExpressionHandler.get_instance()
   result = exp_handler.pop_operand()
-  print(result[0].name())
-  print(result[0].var_type)
   var, var_type = result
   if (var_type != 'bool'):
     raise SemanticError("Result of expression is not of type 'bool'. Found '{}' instead.".format(var_type))
@@ -170,6 +168,7 @@ def p_else_jump(p):
   jumps_stack = JumpsStack.get_instance()
   pending_jump_quad = jumps_stack.pop_quad()
   pending_jump_quad.set_jump(QuadrupleStack.next_quad_id())
+  jumps_stack.push_quad(inconditional_jump)
 
 # EMBEDDED ACTION
 def p_else_if_jump(p):

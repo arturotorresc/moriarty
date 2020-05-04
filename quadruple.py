@@ -57,6 +57,11 @@ class QuadrupleStack:
     if not isinstance(quad, Quadruple):
       raise Exception("Type not allowed, expected a 'Quadruple' but found {}".format(type(quad)))
     quad.id = QuadrupleStack.__quad_count
+    print("=== QUAD {} ===".format(quad.id))
+    print("operator: {}".format(quad.get_operator()))
+    print("left_op: {}".format(quad.left_operand()))
+    print("right_op: {}".format(quad.right_operand()))
+    print("result: {}".format(quad.result()))
     QuadrupleStack.__quad_count += 1
     self.__quadruple_stack.append(quad)
   
