@@ -196,10 +196,17 @@ def p_return_1(p):
 
 def p_expression(p):
   ''' expression : NOT exp expression-1
-                 | exp expression-1 '''
+                 | exp expression-1 save-relop-quad '''
+
+# EMBEDDED ACTION
+def p_save_relop_quad(p):
+  ''' save-relop-quad :'''
+  # We attempt to create a quadruple if current
+  # operator is * or /
+  attempt_create_quadruple(['>', '>=', '<', '<=', '!=', '=='])
 
 def p_expression_1(p):
-  ''' expression-1 : RELOP exp 
+  ''' expression-1 : RELOP push_op exp 
                    | empty
   '''
 

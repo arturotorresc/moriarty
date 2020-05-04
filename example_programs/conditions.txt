@@ -3,13 +3,28 @@ player jugador;
 main() {
   var a : bool = true;
   var b : bool = false;
-  if (a) {
+  var i : int = 3;
+  var j : int = 4;
+  if (i < j) {
+    a = false;
     move(jugador);
   } else if (b) {
+    j = 3 * 23;
     move(jugador);
   } else {
     var v : int = (3 + 5 * 2);
     move(jugador);
   }
-  var j : int = (1 + 2 * 3 / 4);
+
+  if (a) {
+    move(jugador);
+  }
+
+  if (b) {
+    move(jugador);
+  } else {
+    shoot(jugador);
+  }
+
+  var f : int = (1 + (2 * 3 / (4 * 1212)) / 4);
 }
