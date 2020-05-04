@@ -9,3 +9,6 @@ test:
 
 accept:
 	python yacc.test.py ./example_programs/accept.txt
+
+run-app:
+	cd front-end && yarn start

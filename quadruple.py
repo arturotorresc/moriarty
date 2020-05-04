@@ -8,6 +8,14 @@ class Quadruple:
     self.__right_operand = right_operand
     self.__result = result
   
+  @property
+  def id(self):
+    return self.__id
+  
+  @id.setter
+  def id(self, value):
+    self.__id = value
+  
   def get_operator(self):
       return self.__operator
 
@@ -31,6 +39,7 @@ class QuadrupleStack:
 
   # Our Singleton instance
   __instance = None
+  __quad_count = 0
 
   @classmethod
   def get_instance(self):
@@ -41,6 +50,10 @@ class QuadrupleStack:
   # ================ PUBLIC INTERFACE =====================
 
   def push_quad(self, quad):
+    if not isinstance(quad, Quadruple):
+      raise Exception("Type not allowed, expected a 'Quadruple' but found {}".format(type(quad)))
+    quad.id = QuadrupleStack.__quad_count
+    QuadrupleStack.__quad_count += 1
     self.__quadruple_stack.append(quad)
   
   def peek_quad(self):
@@ -49,6 +62,7 @@ class QuadrupleStack:
   def pop_quad(self):
     if not self.__quadruple_stack:
       raise Exception("The Quadruple Stack is empty! Can't pop!")
+    QuadrupleStack.__quad_count -= 1
     return self.__quadruple_stack.pop()
 
   # ================ PRIVATE INTERFACE =====================
