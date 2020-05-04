@@ -4,6 +4,15 @@ from collections import deque
 class PendingJump:
   pass
 
+# Class used to signify where to jump to
+class JumpHere:
+  def __init__(self, id):
+    self.__id = id
+  
+  @property
+  def id(self):
+    return self.__id
+
 # Class that handles all jumps.
 class JumpsStack:
   # ================ ATTRIBUTES =====================
