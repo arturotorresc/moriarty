@@ -22,3 +22,4 @@ def attempt_create_quadruple(operands: List[str]):
       # TODO: return temporal space to AVAIL
     else:
       raise Exception("Type mismatch: {} is not compatible with {}".format(left_op[1], right_op[1]))
+

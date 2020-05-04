@@ -1,4 +1,5 @@
 from collections import deque
+from jumps_stack import PendingJump
 
 class Quadruple:
   def __init__(self, operator, left_operand, right_operand, result):
@@ -15,6 +16,11 @@ class Quadruple:
 
   def right_operand(self):
     return self.__right_operand
+  
+  def set_jump(self, jump):
+    if not isinstance(self.__result, PendingJump):
+      raise Exception("Trying to set a jump but this quadruple does not have a pending jump")
+    self.__result = jump
 
   def result(self):
     return self.__result

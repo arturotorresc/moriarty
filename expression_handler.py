@@ -20,6 +20,10 @@ class ExpressionHandler:
   def push_operand(self, operand, var_type):
     self.__operand_stack.append((operand, var_type))
   
+  # Gets the last item stored in the Operand stack.
+  def pop_operand(self):
+    return self.__pop_operand()
+  
   # Pushes a new operator into the operator stack
   def push_operator(self, operator):
     self.__operator_stack.append(operator)

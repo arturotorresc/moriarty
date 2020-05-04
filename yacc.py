@@ -5,6 +5,10 @@ from lex import tokens
 from symbol_table import SymbolTable
 from algorithms import attempt_create_quadruple
 from expression_handler import ExpressionHandler
+from semantic_error import SemanticError
+from quadruple import Quadruple
+from jumps_stack import JumpsStack, PendingJump
+from quadruple import QuadrupleStack
 
 exp_handler = ExpressionHandler.get_instance()
 
@@ -124,7 +128,21 @@ def p_statement(p):
                 | variable-decl '''
 
 def p_conditional(p):
-  ''' conditional : IF LPAREN expression RPAREN block conditional-1 '''
+  ''' conditional : IF LPAREN expression push-if-jump RPAREN block conditional-1 '''
+
+# EMBEDDED ACTION
+def p_push_if_jump(p):
+  ''' push-if-jump :'''
+  exp_handler = ExpressionHandler.get_instance()
+  result = exp_handler.pop_operand()
+  var, var_type = result
+  if (var_type != 'bool'):
+    raise SemanticError("Result of expression is not of type 'bool'. Found '{}' instead.".format(var_type))
+  jump_quad = Quadruple("GOTOF", var, None, PendingJump())
+  quad_stack = QuadrupleStack.get_instance()
+  quad_stack.push_quad(jump_quad)
+  jumps_stack = JumpsStack.get_instance()
+  jumps_stack.push_quad(jump_quad)
 
 def p_conditional_1(p):
   ''' conditional-1 : ELSE conditional-2
