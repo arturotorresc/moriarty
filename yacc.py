@@ -1,8 +1,12 @@
+# coding=utf-8
 import ply.yacc as yacc
 
 from lex import tokens
 from symbol_table import SymbolTable
 from algorithms import attempt_create_quadruple
+from expression_handler import ExpressionHandler
+
+exp_handler = ExpressionHandler.get_instance()
 
 def p_program(p):
   ''' program : init function-and-vars main '''
@@ -168,7 +172,7 @@ def p_save_term_quad(p):
   attempt_create_quadruple(['+', '-'])
 
 def p_exp_1(p):
-  ''' exp-1 : SIGN exp
+  ''' exp-1 : SIGN push_op exp
             | empty
   '''
 
@@ -184,16 +188,31 @@ def p_save_factor_quad(p):
   attempt_create_quadruple(['*', '/'])
 
 def p_term_1(p):
-  ''' term-1 : OPERATOR term
+  ''' term-1 : OPERATOR push_op term
              | empty
   '''
 
+# EMBEDDED ACTION
+def p_push_op(p):
+  ''' push_op :'''
+  exp_handler.push_operator(p[-1])
+
 def p_factor(p):
-  ''' factor : LPAREN expression RPAREN
+  ''' factor : LPAREN push_par expression RPAREN pop_par
              | constant
              | factor-num
              | SIGN factor-num
   '''
+
+# EMBEDDED ACTION
+def p_push_par(p):
+  ''' push_par :'''
+  exp_handler.push_parenthesis()
+
+# EMBEDDED ACTION
+def p_pop_par(p):
+  ''' pop_par :'''
+  exp_handler.pop_parenthesis()
 
 def p_factor_num(p):
   ''' factor-num : numeric-constant
@@ -201,16 +220,42 @@ def p_factor_num(p):
   '''
 
 def p_constant(p):
-  ''' constant : BOOLEAN
+  ''' constant : BOOLEAN push_bool
                | list-const
-               | string
+               | string push_string
   '''
 
 def p_numeric_constant(p):
-  ''' numeric-constant : INTEGER
-                       | ID
+  ''' numeric-constant : INTEGER push_num
+                       | ID push_var
                        | array-constant
   '''
+
+# EMBEDDED ACTION
+def p_push_num(p):
+  ''' push_num :'''
+  s_table = SymbolTable.get_instance()
+  exp_handler.push_operand(p[-1], 'int')
+
+# EMBEDDED ACTION
+def p_push_string(p):
+  ''' push_string :'''
+  s_table = SymbolTable.get_instance()
+  exp_handler.push_operand(p[-1], 'string')
+
+# EMBEDDED ACTION
+def p_push_bool(p):
+  ''' push_bool :'''
+  s_table = SymbolTable.get_instance()
+  exp_handler.push_operand(p[-1], 'bool')
+
+# EMBEDDED ACTION
+def p_push_var(p):
+  ''' push_var :'''
+  s_table = SymbolTable.get_instance()
+  tvar = s_table.get_scope().get_var(p[-1])
+  if (tvar):
+    exp_handler.push_operand(tvar, tvar.var_type)
 
 def p_function_call(p):
   ''' function-call : MOVE LPAREN ID RPAREN
@@ -262,7 +307,7 @@ def p_list_const_2(p):
 
 def p_string(p):
   ''' string : STR'''
-  pass
+  p[0] = p[1]
 
 def p_empty(p):
   ''' empty : '''

@@ -26,7 +26,8 @@ class ExpressionHandler:
   
   # Gets the top of the operator stack.
   def peek_operator(self):
-    return self.__operator_stack[-1]
+    if (self.__operator_stack):
+      return self.__operator_stack[-1]
   
   # Pushes a fake wall.
   def push_parenthesis(self):
