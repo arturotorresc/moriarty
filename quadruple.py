@@ -49,6 +49,10 @@ class QuadrupleStack:
   
   # ================ PUBLIC INTERFACE =====================
 
+  @classmethod
+  def next_quad_id(self):
+    return QuadrupleStack.__quad_count
+
   def push_quad(self, quad):
     if not isinstance(quad, Quadruple):
       raise Exception("Type not allowed, expected a 'Quadruple' but found {}".format(type(quad)))
@@ -62,7 +66,6 @@ class QuadrupleStack:
   def pop_quad(self):
     if not self.__quadruple_stack:
       raise Exception("The Quadruple Stack is empty! Can't pop!")
-    QuadrupleStack.__quad_count -= 1
     return self.__quadruple_stack.pop()
 
   # ================ PRIVATE INTERFACE =====================
