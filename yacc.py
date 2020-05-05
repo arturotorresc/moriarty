@@ -226,8 +226,24 @@ def p_return_1(p):
                | expression SEMICOLON '''
 
 def p_expression(p):
-  ''' expression : NOT exp expression-1
-                 | exp expression-1 save-relop-quad '''
+  ''' expression : NOT exp-relop expression-1
+                 | exp-relop expression-1 save-logic-quad '''
+
+# EMBEDDED ACTION
+def p_save_logic_quad(p):
+  ''' save-logic-quad :'''
+  # We attempt to create a quadruple if current
+  # operator is logical
+  attempt_create_quadruple(['or', 'and'])
+
+def p_expression_1(p):
+  ''' expression-1 : LOGIC push_op exp-relop
+                   | empty
+  '''
+
+def p_exp_relop(p):
+  ''' exp-relop : exp save-relop-quad exp-relop-1
+  '''
 
 # EMBEDDED ACTION
 def p_save_relop_quad(p):
@@ -236,9 +252,9 @@ def p_save_relop_quad(p):
   # operator is * or /
   attempt_create_quadruple(['>', '>=', '<', '<=', '!=', '=='])
 
-def p_expression_1(p):
-  ''' expression-1 : RELOP push_op exp 
-                   | empty
+def p_exp_relop_1(p):
+  ''' exp-relop-1 : RELOP push_op exp-relop
+              | empty
   '''
 
 def p_exp(p):
