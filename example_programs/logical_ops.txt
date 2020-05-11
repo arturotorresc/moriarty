@@ -1,0 +1,19 @@
+player jugadorUno;
+
+function hola() : bool {
+  return true;
+}
+
+main () {
+  if (true and false or true and false) {
+  }
+
+  if ((hola() and true) or (false or (true and true))) {
+    var i : int = 2 + 3;
+  }
+  var j : int = (3 * 2 / 32 + 34 - 23 * 12);
+  if (not (true and false)) {
+    j = 3 * 2;
+  }
+
+}

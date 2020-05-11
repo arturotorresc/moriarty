@@ -5,6 +5,7 @@ main() {
   var b : bool = false;
   var i : int = 3;
   var j : int = 4;
+
   if (i < j) {
     a = false;
     move(jugador);
@@ -26,5 +27,19 @@ main() {
     shoot(jugador);
   }
 
-  var f : int = (1 + (2 * 3 / (4 * 1212)) / 4);
+  if (a) {
+    i = (3 + 2);
+  } else if (b) {
+    i = (4 * 2);
+  }
+
+  if (a) {
+    i = (3 + 2); 
+  } else if (b) {
+    i = (4 * 2);
+  } else if (i <= j) {
+    j = 3 + 2;
+  }
+
+  var f : int = (1 + (2 * 3 / (i * 1212)) / 4);
 }

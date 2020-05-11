@@ -5,9 +5,9 @@ reserved = {'if': 'IF', 'else': 'ELSE', 'loop': 'LOOP', 'player': 'PLAYER', 'var
             'move': 'MOVE', 'speak': 'SPEAK', 'rotate': 'ROTATE', 'shoot': 'SHOOT', 'jump': 'JUMP',
             'enemy?': 'ENEMY', 'reload_gun': 'RELOAD_GUN', 'gun_loaded?': 'GUN_LOADED',
             'void': 'VOID', 'not': 'NOT', 'return': 'RETURN', 'main': 'MAIN'}
-tokens = ['BOOLEAN', 'SIGN', 'OPERATOR', 'RELOP', 'COMMA', 'SEMICOLON',
+tokens = ['BOOLEAN', 'SIGN', 'OPERATOR', 'RELOP', 'LOGICAL_OP' , 'COMMA', 'SEMICOLON',
           'LPAREN', 'RPAREN', 'LCURL', 'RCURL', 'LBRACKET', 'RBRACKET' , 'EQUALS', 'DOTS',
-          'INTEGER', 'STR', 'COMMENT', 'ID'] + list(reserved.values())
+          'INTEGER', 'STR', 'ID'] + list(reserved.values())
 
 t_STR = r'".*\"'
 t_SIGN = r'(?:\+|-)'
@@ -42,7 +42,11 @@ def t_BOOLEAN(t):
     return t
 
 def t_RELOP(t):
-    r'(?:and|or|<=|>=|<|>|!=|==)'
+    r'(?:<=|>=|<|>|!=|==)'
+    return t
+
+def t_LOGICAL_OP(t):
+    r'(?:and|or)'
     return t
 
 def t_INTEGER(t):

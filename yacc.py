@@ -3,7 +3,7 @@ import ply.yacc as yacc
 
 from lex import tokens
 from symbol_table import SymbolTable
-from algorithms import attempt_create_quadruple
+from algorithms import attempt_create_quadruple, attempt_create_quadruple_unary
 from expression_handler import ExpressionHandler
 from semantic_error import SemanticError
 from quadruple import Quadruple
@@ -11,9 +11,22 @@ from jumps_stack import JumpsStack, PendingJump
 from quadruple import QuadrupleStack
 
 exp_handler = ExpressionHandler.get_instance()
+symbol_table = SymbolTable.get_instance()
+s_table = SymbolTable.get_instance()
 
 def p_program(p):
-  ''' program : init function-and-vars main '''
+  ''' program : init function-and-vars main debug-stuff '''
+
+# DEBUG ACTION
+def p_debug_stuff(p):
+  ''' debug-stuff :'''
+  quad_stack = QuadrupleStack.get_instance()
+  print(quad_stack.empty())
+  while not quad_stack.empty():
+    quad = quad_stack.peek_quad()
+    quad_stack.pop_quad()
+    print("====== QUADRUPLE {} =====".format(quad.id))
+    print("( op: {} , l_opnd: {}, r_opnd: {}, res: {})\n".format(quad.get_operator(), quad.left_operand(), quad.right_operand(), quad.result()))
 
 def p_init(p):
   ''' init : PLAYER ID save_player SEMICOLON init-1 '''
@@ -21,7 +34,6 @@ def p_init(p):
 # EMBEDDED ACTION
 def p_save_player(p):
   ''' save_player :'''
-  symbol_table = SymbolTable.get_instance()
   symbol_table.get_scope().add_player(p[-1])
 
 def p_init_1(p):
@@ -42,7 +54,6 @@ def p_variable_decl(p):
 # EMBEDDED ACTION
 def p_save_var(p):
   ''' save_var :'''
-  symbol_table = SymbolTable.get_instance()
   symbol_table.get_scope().add_variable(p[-1])
 
 def p_variable_decl_1(p):
@@ -52,28 +63,24 @@ def p_variable_decl_1(p):
 # EMBEDDED ACTION
 def p_save_var_type(p):
   ''' save_var_type :'''
-  symbol_table = SymbolTable.get_instance()
   symbol_table.get_scope().get_last_saved_var().var_type = p[-1]
 
 def p_variable_decl_2(p):
-  ''' variable-decl-2 : EQUALS expression SEMICOLON
+  ''' variable-decl-2 : EQUALS expression-logical SEMICOLON
                       | SEMICOLON '''
 
 def p_function(p):
   ''' function : FUNCTION ID register-function-name LPAREN func-params-or-empty RPAREN DOTS func-type register-function-type block '''
-  s_table = SymbolTable.get_instance()
   s_table.pop_scope()
 
 # EMBEDDED ACTION
 def p_register_function_name(p):
   ''' register-function-name :'''
-  s_table = SymbolTable.get_instance()
   s_table.get_scope().add_function(p[-1])
 
 # EMBEDDED ACTION
 def p_register_function_type(p):
   ''' register-function-type :'''
-  s_table = SymbolTable.get_instance()
   s_table.get_scope().get_last_saved_func().return_type = p[-1]
   s_table.push_scope()
 
@@ -135,7 +142,7 @@ def p_exit_if_jump(p):
   pending_jump_quad.set_jump(QuadrupleStack.next_quad_id())
 
 def p_conditional(p):
-  ''' conditional : IF LPAREN expression push-if-jump RPAREN block conditional-1 '''
+  ''' conditional : IF LPAREN expression-logical push-if-jump RPAREN block conditional-1 '''
 
 # EMBEDDED ACTION
 def p_push_if_jump(p):
@@ -181,22 +188,33 @@ def p_assignment(p):
   ''' assignment : ID assignment-1'''
 
 def p_assignment_1(p):
-  ''' assignment-1 : LBRACKET expression RBRACKET EQUALS expression SEMICOLON
-                   | EQUALS expression SEMICOLON '''
+  ''' assignment-1 : LBRACKET expression-logical RBRACKET EQUALS expression-logical SEMICOLON
+                   | EQUALS expression-logical SEMICOLON '''
 
 def p_loop(p):
-  ''' loop : LOOP LPAREN expression RPAREN block '''
+  ''' loop : LOOP LPAREN expression-logical RPAREN block '''
 
 def p_return(p):
   ''' return : RETURN return-1 '''
 
 def p_return_1(p):
   ''' return-1 : SEMICOLON
-               | expression SEMICOLON '''
+               | expression-logical SEMICOLON '''
+
+def p_expression_logical(p):
+  ''' expression-logical : expression expression-logical-1 save-logical-quad'''
+
+def p_save_logical_quad(p):
+  ''' save-logical-quad :'''
+  attempt_create_quadruple(['and', 'or'])
+
+
+def p_expression_logical_1(p):
+  ''' expression-logical-1 : LOGICAL_OP push_op expression-logical
+                           | empty'''
 
 def p_expression(p):
-  ''' expression : NOT exp expression-1
-                 | exp expression-1 save-relop-quad '''
+  ''' expression : exp expression-1 save-relop-quad '''
 
 # EMBEDDED ACTION
 def p_save_relop_quad(p):
@@ -236,6 +254,7 @@ def p_save_factor_quad(p):
   # We attempt to create a quadruple if current
   # operator is * or /
   attempt_create_quadruple(['*', '/'])
+  attempt_create_quadruple_unary(['not'])
 
 def p_term_1(p):
   ''' term-1 : OPERATOR push_op term
@@ -248,10 +267,17 @@ def p_push_op(p):
   exp_handler.push_operator(p[-1])
 
 def p_factor(p):
-  ''' factor : LPAREN push_par expression RPAREN pop_par
+  ''' factor : LPAREN push_par expression-logical RPAREN pop_par
              | constant
              | factor-num
              | SIGN factor-num
+             | NOT push_op not-options
+  '''
+
+def p_not_options(p):
+  ''' not-options : factor-num
+                  | constant
+                  | LPAREN push_par expression-logical RPAREN pop_par
   '''
 
 # EMBEDDED ACTION
@@ -284,13 +310,11 @@ def p_numeric_constant(p):
 # EMBEDDED ACTION
 def p_push_num(p):
   ''' push_num :'''
-  s_table = SymbolTable.get_instance()
   exp_handler.push_operand(p[-1], 'int')
 
 # EMBEDDED ACTION
 def p_push_string(p):
   ''' push_string :'''
-  s_table = SymbolTable.get_instance()
   exp_handler.push_operand(p[-1], 'string')
 
 # EMBEDDED ACTION
@@ -302,22 +326,33 @@ def p_push_bool(p):
 # EMBEDDED ACTION
 def p_push_var(p):
   ''' push_var :'''
-  s_table = SymbolTable.get_instance()
   tvar = s_table.get_scope().get_var(p[-1])
   if (tvar):
     exp_handler.push_operand(tvar, tvar.var_type)
+  else:
+    raise SemanticError('No variable with id: "{}"'.format(p[-1]))
 
 def p_function_call(p):
-  ''' function-call : MOVE LPAREN ID RPAREN
-                    | SPEAK LPAREN ID COMMA expression RPAREN
-                    | ROTATE LPAREN ID RPAREN
-                    | SHOOT LPAREN ID RPAREN
-                    | JUMP LPAREN ID RPAREN
-                    | ENEMY LPAREN ID RPAREN
-                    | RELOAD_GUN LPAREN ID RPAREN
-                    | GUN_LOADED LPAREN ID RPAREN
+  ''' function-call : MOVE LPAREN ID push_player RPAREN
+                    | SPEAK LPAREN ID push_player COMMA expression-logical RPAREN
+                    | ROTATE LPAREN ID push_player RPAREN
+                    | SHOOT LPAREN ID push_player RPAREN
+                    | JUMP LPAREN ID push_player RPAREN
+                    | ENEMY LPAREN ID push_player RPAREN
+                    | RELOAD_GUN LPAREN ID push_player RPAREN
+                    | GUN_LOADED LPAREN ID push_player RPAREN
                     | ID LPAREN function-call-1
   '''
+
+# EMBEDDED ACTION
+def p_push_player(p):
+  ''' push_player :'''
+  tplayer = s_table.get_scope().get_player(p[-1])
+  if (tplayer):
+    exp_handler.push_operand(tplayer, 'player')
+  else:
+    raise SemanticError('No player with id: "{}"'.format(p[-1]))
+
 
 def p_function_call_1(p):
   ''' function-call-1 : RPAREN
@@ -325,7 +360,7 @@ def p_function_call_1(p):
   '''
 
 def p_function_call_params(p):
-  ''' function-call-params : expression function-call-params-1
+  ''' function-call-params : expression-logical function-call-params-1
   '''
 
 def p_function_call_params_1(p):
@@ -334,7 +369,7 @@ def p_function_call_params_1(p):
   '''
 
 def p_array_constant(p):
-  ''' array-constant :  ID LBRACKET expression RBRACKET
+  ''' array-constant :  ID LBRACKET expression-logical RBRACKET
   '''
 
 def p_list_const(p):
@@ -347,7 +382,7 @@ def p_list_const_a(p):
   '''
 
 def p_list_const_1(p):
-  ''' list-const-1 : expression list-const-2
+  ''' list-const-1 : expression-logical list-const-2
   '''
 
 def p_list_const_2(p):

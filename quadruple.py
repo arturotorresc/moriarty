@@ -67,6 +67,9 @@ class QuadrupleStack:
     if not self.__quadruple_stack:
       raise Exception("The Quadruple Stack is empty! Can't pop!")
     return self.__quadruple_stack.pop()
+  
+  def empty(self):
+    return len(self.__quadruple_stack) == 0
 
   # ================ PRIVATE INTERFACE =====================
   def __init__(self):

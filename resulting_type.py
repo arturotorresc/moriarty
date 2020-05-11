@@ -1,55 +1,57 @@
+ERROR_CODE = 'ERROR'
+
 class ResultingType:
   # Semantic Table for Expressions
   __cubeType = {
     '+': {
-      'int':    { 'int': 'int', 'bool': 'ERROR', 'string': 'ERROR' },
-      'bool':   { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' },
-      'string': { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'string' }
+      'int':    { 'int': 'int', 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'bool':   { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'string': { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': 'string' }
     },
     '-': {
-      'int':    { 'int': 'int', 'bool': 'ERROR', 'string': 'ERROR' },
-      'bool':   { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' },
-      'string': { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' }
+      'int':    { 'int': 'int', 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'bool':   { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'string': { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE }
     },
     '*': {
-      'int':    { 'int': 'int', 'bool': 'ERROR', 'string': 'ERROR' },
-      'bool':   { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' },
-      'string': { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' }
+      'int':    { 'int': 'int', 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'bool':   { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'string': { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE }
     },
     '/': {
-      'int':    { 'int': 'int', 'bool': 'ERROR', 'string': 'ERROR' },
-      'bool':   { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' },
-      'string': { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' }
+      'int':    { 'int': 'int', 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'bool':   { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'string': { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE }
     },
     '<': {
-      'int':    { 'int': 'bool', 'bool': 'ERROR', 'string': 'ERROR' },
-      'bool':   { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' },
-      'string': { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' }
+      'int':    { 'int': 'bool', 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'bool':   { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'string': { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE }
     },
     '<=': {
-      'int':    { 'int': 'bool', 'bool': 'ERROR', 'string': 'ERROR' },
-      'bool':   { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' },
-      'string': { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' }
+      'int':    { 'int': 'bool', 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'bool':   { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'string': { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE }
     },
     '>': {
-      'int':    { 'int': 'bool', 'bool': 'ERROR', 'string': 'ERROR' },
-      'bool':   { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' },
-      'string': { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' }
+      'int':    { 'int': 'bool', 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'bool':   { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'string': { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE }
     },
     '>=': {
-      'int':    { 'int': 'bool', 'bool': 'ERROR', 'string': 'ERROR' },
-      'bool':   { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' },
-      'string': { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'ERROR' }
+      'int':    { 'int': 'bool', 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'bool':   { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'string': { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': ERROR_CODE }
     },
     '!=': {
-      'int':    { 'int': 'bool', 'bool': 'ERROR', 'string': 'ERROR' },
-      'bool':   { 'int': 'ERROR', 'bool': 'bool', 'string': 'ERROR' },
-      'string': { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'bool' }
+      'int':    { 'int': 'bool', 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'bool':   { 'int': ERROR_CODE, 'bool': 'bool', 'string': ERROR_CODE },
+      'string': { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': 'bool' }
     },
     '==': {
-      'int':    { 'int': 'bool', 'bool': 'ERROR', 'string': 'ERROR' },
-      'bool':   { 'int': 'ERROR', 'bool': 'bool', 'string': 'ERROR' },
-      'string': { 'int': 'ERROR', 'bool': 'ERROR', 'string': 'bool' }
+      'int':    { 'int': 'bool', 'bool': ERROR_CODE, 'string': ERROR_CODE },
+      'bool':   { 'int': ERROR_CODE, 'bool': 'bool', 'string': ERROR_CODE },
+      'string': { 'int': ERROR_CODE, 'bool': ERROR_CODE, 'string': 'bool' }
     },
     'and': {
       'int':    { 'int': 'bool', 'bool': 'bool', 'string': 'bool' },
@@ -63,7 +65,19 @@ class ResultingType:
     }
   }
 
+  __cubeTypeUnary = {
+    'not': {
+      'bool': 'bool',
+      'int': 'bool',
+      'string': ERROR_CODE
+    }
+  }
+
   # Get resulting type between two operators and its operation
   @classmethod
   def get_type(self, operator, left, right):
     return ResultingType.__cubeType[operator][left][right]
+  
+  @classmethod
+  def get_type_unary(self, operator, operand):
+    return ResultingType.__cubeTypeUnary[operator][operand]

@@ -96,7 +96,7 @@ test_reserved = list(lex.reserved.values())
 
 # Order matters in this list. Items should appear as they do in [token_data]
 test_tokens = ['str', 'str', 'str', 'integer', 'integer', 'integer', 'sign', 'sign',
-  'operator', 'operator', 'relop', 'relop', 'relop', 'relop', 'relop', 'relop', 'relop', 'relop',
+  'operator', 'operator', 'relop', 'relop', 'relop', 'relop', 'relop', 'relop', 'logical_op', 'logical_op',
   'comma', 'lparen', 'rparen', 'lcurl', 'rcurl', 'equals', 'dots', 'semicolon', 'id', 'id',
   'id','id','id','id','id','id', 'id', 'id', 'id', 'id', 'boolean', 'boolean', 'lbracket',
   'rbracket']
