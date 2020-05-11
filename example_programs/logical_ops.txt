@@ -6,14 +6,17 @@ function hola() : bool {
 
 main () {
   if (true and false or true and false) {
+    var a : int = 3 * 2;
   }
 
   if ((hola() and true) or (false or (true and true))) {
     var i : int = 2 + 3;
+    var b : int = 2 + 3 * 4 * 5;
   }
-  var j : int = (3 * 2 / 32 + 34 - 23 * 12);
-  if (not (true and false)) {
-    j = 3 * 2;
+  var j : int = (44 * 2 / 32 + 34 - 23 * 12);
+  loop (true and true or (not false and true)) {
+    b = 2 * 3;
+    b = 1 + 2;
   }
 
 }
