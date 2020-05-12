@@ -1,4 +1,5 @@
 from collections import deque
+from semantic_error import SemanticError
 
 # ========================== PRIVATE INTERFACE ======================
 
@@ -53,9 +54,24 @@ class FunctionTable:
   def __init__(self, name, return_type):
     self.__name = name
     self.__return_type = return_type
+    self.__params = []
+    self.__param_counter = 0
   
   def name(self):
     return self.__name
+  
+  # Inserts the parameter type into the parameters array
+  def insert_param(self, param_type):
+    self.__params.append(param_type)
+  
+  # Gets the parameter at [__param_counter]
+  def get_next_param(self):
+    param = self.__params[self.__param_counter]
+    self.__param_counter += 1
+    return param
+  
+  def reset_param_counter(self):
+    self.__param_counter = 0
   
   @property
   def return_type(self):
@@ -128,7 +144,7 @@ class Scope:
   # Adds a function to the current scope
   def add_function(self, name, return_type = None):
     if name in self.functions():
-      raise Exception('Function with identifier: "{}" already exists!'.format(name))
+      raise SemanticError('Function with identifier: "{}" already exists!'.format(name))
 
     self.__functions[name] = FunctionTable(name, return_type)
     self.__last_saved_func = self.__functions[name]
@@ -136,7 +152,7 @@ class Scope:
   # Adds a variable to the current scope
   def add_variable(self, name, var_type = None):
     if name in self.vars():
-      raise Exception('Variable with identifier: "{}" already exists!'.format(name))
+      raise SemanticError('Variable with identifier: "{}" already exists!'.format(name))
     
     self.__variables[name] = VariableTable(name, var_type)
     self.__last_saved_var = self.__variables[name]
@@ -144,7 +160,7 @@ class Scope:
   # Adds a player to the current scope.
   def add_player(self, player_name, location = None):
     if player_name in self.players():
-      raise Exception("Player with identifier: '{}' already exists!".format(player_name))
+      raise SemanticError("Player with identifier: '{}' already exists!".format(player_name))
     
     self.__players[player_name] = PlayerTable(player_name, location)
 
