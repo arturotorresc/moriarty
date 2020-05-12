@@ -12,10 +12,9 @@ from quadruple import QuadrupleStack
 
 exp_handler = ExpressionHandler.get_instance()
 symbol_table = SymbolTable.get_instance()
-s_table = SymbolTable.get_instance()
 
 def p_program(p):
-  ''' program : init function-and-vars main debug-stuff '''
+  ''' program : init function-and-vars main '''
 
 # DEBUG ACTION
 def p_debug_stuff(p):
@@ -70,18 +69,18 @@ def p_variable_decl_2(p):
 
 def p_function(p):
   ''' function : FUNCTION ID register-function-name LPAREN func-params-or-empty RPAREN DOTS func-type register-function-type block '''
-  s_table.pop_scope()
+  symbol_table.pop_scope()
 
 # EMBEDDED ACTION
 def p_register_function_name(p):
   ''' register-function-name :'''
-  s_table.get_scope().add_function(p[-1])
+  symbol_table.get_scope().add_function(p[-1])
 
 # EMBEDDED ACTION
 def p_register_function_type(p):
   ''' register-function-type :'''
-  s_table.get_scope().get_last_saved_func().return_type = p[-1]
-  s_table.push_scope()
+  symbol_table.get_scope().get_last_saved_func().return_type = p[-1]
+  symbol_table.push_scope()
 
 def p_func_params_or_empty(p):
   ''' func-params-or-empty : func-params
@@ -350,13 +349,13 @@ def p_push_string(p):
 # EMBEDDED ACTION
 def p_push_bool(p):
   ''' push_bool :'''
-  s_table = SymbolTable.get_instance()
+  symbol_table = SymbolTable.get_instance()
   exp_handler.push_operand(p[-1], 'bool')
 
 # EMBEDDED ACTION
 def p_push_var(p):
   ''' push_var :'''
-  tvar = s_table.get_scope().get_var(p[-1])
+  tvar = symbol_table.get_scope().get_var(p[-1])
   if (tvar):
     exp_handler.push_operand(tvar, tvar.var_type)
   else:
@@ -371,13 +370,13 @@ def p_function_call(p):
                     | ENEMY LPAREN ID push_player RPAREN
                     | RELOAD_GUN LPAREN ID push_player RPAREN
                     | GUN_LOADED LPAREN ID push_player RPAREN
-                    | ID LPAREN function-call-1
+                    | ID LPAREN gen_size function-call-1
   '''
 
 # EMBEDDED ACTION
 def p_push_player(p):
   ''' push_player :'''
-  tplayer = s_table.get_scope().get_player(p[-1])
+  tplayer = symbol_table.get_scope().get_player(p[-1])
   if (tplayer):
     exp_handler.push_operand(tplayer, 'player')
   else:
@@ -385,18 +384,53 @@ def p_push_player(p):
 
 
 def p_function_call_1(p):
-  ''' function-call-1 : RPAREN
-                      | function-call-params RPAREN
+  ''' function-call-1 : RPAREN p-go-sub
+                      | function-call-params RPAREN p-go-sub
   '''
 
 def p_function_call_params(p):
-  ''' function-call-params : expression-logical function-call-params-1
+  ''' function-call-params : expression-logical set-params function-call-params-1
   '''
 
 def p_function_call_params_1(p):
   ''' function-call-params-1 : COMMA function-call-params
                               | empty
   '''
+
+# EMBEDDED ACTION
+def p_gen_size(p):
+  ''' gen_size :'''
+  func = symbol_table.get_scope().get_function(p[-2])
+  if (func):
+    symbol_table.get_scope().current_function = func
+    quad = Quadruple("ERA", None, None, func)
+    quad_stack = QuadrupleStack.get_instance()
+    quad_stack.push_quad(quad)
+    func.reset_param_counter()
+  else:
+    raise SemanticError('No function with id: "{}"'.format(p[-2]))
+
+def p_set_params(p):
+  ''' set-params :'''
+  c_function = symbol_table.get_scope().current_function
+  c_param = c_function.get_next_param()
+  arg, arg_type = exp_handler.pop_operand()
+  if (c_param):
+    if (c_param[0].type == arg_type):
+      quad = Quadruple("PARAMETER", arg, c_param[1], None)
+      quad_stack = QuadrupleStack.get_instance()
+      quad_stack.push_quad(quad)
+    else:
+      raise SemanticError('Incorrect type in parameters for function with id: "{}'.format(c_function.name))
+  else:
+    raise SemanticError('Incorrect number of parameters for function with id: {}'.format(c_function.name))
+
+def p_go_sub(p):
+  ''' go-sub :'''
+  c_function = symbol_table.get_scope().current_function
+  quad = Quadruple("GOSUB", c_function, None, None)
+  quad_stack = QuadrupleStack.get_instance()
+  quad_stack.push_quad(quad)
 
 def p_array_constant(p):
   ''' array-constant :  ID LBRACKET expression-logical RBRACKET
@@ -433,3 +467,5 @@ def p_error(p):
   print("Syntax error on input!")
 
 parser = yacc.yacc()
+f = open("example_programs/functions.txt", "r")
+yacc.parse(f.read())

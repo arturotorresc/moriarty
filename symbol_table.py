@@ -57,6 +57,7 @@ class FunctionTable:
     self.__params = []
     self.__param_counter = 0
   
+  @property
   def name(self):
     return self.__name
   
@@ -66,9 +67,10 @@ class FunctionTable:
   
   # Gets the parameter at [__param_counter]
   def get_next_param(self):
-    param = self.__params[self.__param_counter]
-    self.__param_counter += 1
-    return param
+    if self.__params:
+      param = (self.__params[self.__param_counter], self.__param_counter)
+      self.__param_counter += 1
+      return param
   
   def reset_param_counter(self):
     self.__param_counter = 0
@@ -89,6 +91,7 @@ class Scope:
     self.__players = {}
     self.__last_saved_var = None
     self.__last_saved_func = None
+    self.__current_function = None
   
   def parent(self):
     return self.__parent
@@ -107,6 +110,14 @@ class Scope:
   
   def get_last_saved_func(self):
     return self.__last_saved_func
+
+  @property
+  def current_function(self):
+    return self.__current_function
+
+  @current_function.setter
+  def current_function(self, current_function):
+    self.__current_function = current_function
   
   # Gets a function in the current scope or any parent scope.
   def get_function(self, name):
