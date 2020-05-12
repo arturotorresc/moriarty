@@ -95,7 +95,7 @@ class FunctionTable:
   # Gets the parameter at [__param_counter]
   def get_next_param(self):
     if self.__param_counter >= len(self.__params):
-      raise SemanticError('Trying to access param ({}), but function only has ({}) params!{}'.format(self.__param_counter + 1, len(self.__params)))
+      raise SemanticError('Trying to access param ({}), but function only has ({}) params!'.format(self.__param_counter + 1, len(self.__params)))
 
     param = (self.__params[self.__param_counter], self.__param_counter)
     self.__param_counter += 1
