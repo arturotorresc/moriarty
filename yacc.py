@@ -9,9 +9,11 @@ from semantic_error import SemanticError
 from quadruple import Quadruple
 from jumps_stack import JumpsStack, PendingJump, JumpHere
 from quadruple import QuadrupleStack
+from avail import Avail
 
 exp_handler = ExpressionHandler.get_instance()
 symbol_table = SymbolTable.get_instance()
+quad_stack = QuadrupleStack.get_instance()
 
 def p_program(p):
   ''' program : init function-and-vars main '''
@@ -19,12 +21,11 @@ def p_program(p):
 # DEBUG ACTION
 def p_debug_stuff(p):
   ''' debug-stuff :'''
-  quad_stack = QuadrupleStack.get_instance()
   while not quad_stack.empty():
     quad = quad_stack.peek_quad()
     quad_stack.pop_quad()
     print("====== QUADRUPLE {} =====".format(quad.id))
-    print("( op: {} , l_opnd: {}, r_opnd: {}, res: {})\n".format(quad.get_operator(), quad.left_operand(), quad.right_operand(), quad.result()))
+    print("( op: {} , l_opnd: {}, r_opnd: {}, res: {} )\n".format(quad.get_operator(), quad.left_operand(), quad.right_operand(), quad.result()))
 
 def p_init(p):
   ''' init : PLAYER ID save_player SEMICOLON init-1 '''
@@ -69,29 +70,47 @@ def p_variable_decl_2(p):
 
 def p_function(p):
   ''' function : FUNCTION ID register-function-name LPAREN func-params-or-empty RPAREN DOTS func-type register-function-type block '''
+  func_table = symbol_table.get_scope().get_function(p[2])
+  vars_count = len(symbol_table.get_scope().vars().keys())
+  func_table.vars_count = vars_count
+  func_table.temp_vars_count = Avail.get_instance().get_next_temp_num() - func_table.temp_vars_count
   symbol_table.pop_scope()
+  quad_stack.push_quad(Quadruple('ENDFUNC', None, None, None))
 
 # EMBEDDED ACTION
 def p_register_function_name(p):
   ''' register-function-name :'''
   symbol_table.get_scope().add_function(p[-1])
+  symbol_table.push_scope()
 
 # EMBEDDED ACTION
 def p_register_function_type(p):
   ''' register-function-type :'''
-  symbol_table.get_scope().get_last_saved_func().return_type = p[-1]
-  symbol_table.push_scope()
+  func_table = symbol_table.get_scope().parent().get_last_saved_func()
+  func_table.return_type = p[-1]
+  # We point our next quad to be generated as the start of the function
+  func_table.func_start = QuadrupleStack.next_quad_id()
+  # We temporarily store the next temp variable to be used to later calculate
+  # the number of temp vars used.
+  func_table.temp_vars_count = Avail.get_instance().get_next_temp_num()
 
 def p_func_params_or_empty(p):
   ''' func-params-or-empty : func-params
                            | empty '''
 
 def p_func_params(p):
-  ''' func-params : ID func-params-1 '''
+  ''' func-params : ID save_var func-params-1 '''
 
 def p_func_params_1(p):
-  ''' func-params-1 : DOTS type func-params-2
+  ''' func-params-1 : DOTS type save_param_type func-params-2
                     | LBRACKET RBRACKET DOTS type func-params-2 '''
+
+# EMBEDDED ACTION
+def p_save_param_type(p):
+  ''' save_param_type :'''
+  param_type = p[-1]
+  symbol_table.get_scope().get_last_saved_var().var_type = param_type
+  symbol_table.get_scope().parent().get_last_saved_func().insert_param(param_type)
 
 def p_func_params_2(p):
   ''' func-params-2 : COMMA func-params
@@ -151,7 +170,6 @@ def p_push_if_jump(p):
   if (var_type != 'bool'):
     raise SemanticError("Result of expression is not of type 'bool'. Found '{}' instead.".format(var_type))
   jump_quad = Quadruple("GOTOF", var, None, PendingJump())
-  quad_stack = QuadrupleStack.get_instance()
   quad_stack.push_quad(jump_quad)
   jumps_stack = JumpsStack.get_instance()
   jumps_stack.push_quad(jump_quad)
@@ -168,7 +186,6 @@ def p_conditional_2(p):
 def p_else_jump(p):
   ''' else-jump :'''
   inconditional_jump = Quadruple("GOTO", None, None, PendingJump())
-  quad_stack = QuadrupleStack.get_instance()
   quad_stack.push_quad(inconditional_jump)
   jumps_stack = JumpsStack.get_instance()
   pending_jump_quad = jumps_stack.pop_quad()
@@ -207,7 +224,6 @@ def p_loop_false(p):
   if (var_type != 'bool'):
     raise SemanticError("Result of expression is not of type 'bool'. Found '{}' instead.".format(var_type))
   jump_quad = Quadruple("GOTOF", var, None, PendingJump())
-  quad_stack = QuadrupleStack.get_instance()
   quad_stack.push_quad(jump_quad)
   jumps_stack = JumpsStack.get_instance()
   jumps_stack.push_quad(jump_quad)
@@ -219,7 +235,6 @@ def p_loop_end(p):
   end = jumps_stack.pop_quad()
   returning = jumps_stack.pop_quad()
   quad = Quadruple("GOTO", None, None, returning.result().id)
-  quad_stack = QuadrupleStack.get_instance()
   quad_stack.push_quad(quad)
   end.set_jump(QuadrupleStack.next_quad_id())
 
@@ -384,8 +399,8 @@ def p_push_player(p):
 
 
 def p_function_call_1(p):
-  ''' function-call-1 : RPAREN p-go-sub
-                      | function-call-params RPAREN p-go-sub
+  ''' function-call-1 : RPAREN go-sub
+                      | function-call-params check-params RPAREN go-sub
   '''
 
 def p_function_call_params(p):
@@ -415,15 +430,18 @@ def p_set_params(p):
   c_function = symbol_table.get_scope().current_function
   c_param = c_function.get_next_param()
   arg, arg_type = exp_handler.pop_operand()
-  if (c_param):
-    if (c_param[0].type == arg_type):
-      quad = Quadruple("PARAMETER", arg, c_param[1], None)
-      quad_stack = QuadrupleStack.get_instance()
-      quad_stack.push_quad(quad)
-    else:
-      raise SemanticError('Incorrect type in parameters for function with id: "{}'.format(c_function.name))
+  if (c_param[0] == arg_type):
+    quad = Quadruple("PARAMETER", arg, c_param[1], None)
+    quad_stack = QuadrupleStack.get_instance()
+    quad_stack.push_quad(quad)
   else:
-    raise SemanticError('Incorrect number of parameters for function with id: {}'.format(c_function.name))
+    raise SemanticError('Incorrect type in parameters for function with id: "{}"'.format(c_function.name))
+
+def p_check_params(p):
+  ''' check-params :'''
+  c_function = symbol_table.get_scope().current_function
+  if (not c_function.verify_params()):
+    raise SemanticError('Incorrect number of parameters for function with id: "{}"'.format(c_function.name))
 
 def p_go_sub(p):
   ''' go-sub :'''
