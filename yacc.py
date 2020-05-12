@@ -485,5 +485,3 @@ def p_error(p):
   print("Syntax error on input!")
 
 parser = yacc.yacc()
-f = open("example_programs/functions.txt", "r")
-yacc.parse(f.read())
