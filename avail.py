@@ -17,7 +17,10 @@ class Avail:
     mem = self.__next_temp
     self.__next_temp += 1
     return mem
-
+  
+  # Gets the next piece of memory to use without modifying the counter
+  def get_next_temp_num(self):
+    return self.__next_temp
 
   # ================ PRIVATE INTERFACE =====================
   def __init__(self):

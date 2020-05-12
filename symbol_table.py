@@ -56,9 +56,36 @@ class FunctionTable:
     self.__return_type = return_type
     self.__params = []
     self.__param_counter = 0
+    self.__vars_count = 0
+    self.__func_start = None
+    self.__temp_vars_count = 0
   
   def name(self):
     return self.__name
+
+  @property
+  def temp_vars_count(self):
+    return self.__temp_vars_count
+  
+  @temp_vars_count.setter
+  def temp_vars_count(self, count):
+    self.__temp_vars_count = count
+  
+  @property
+  def vars_count(self):
+    return self.__vars_count
+  
+  @vars_count.setter
+  def vars_count(self, count):
+    self.__vars_count = count
+  
+  @property
+  def func_start(self):
+    return self.__func_start
+  
+  @func_start.setter
+  def func_start(self, quad_id):
+    self.__func_start = quad_id
   
   # Inserts the parameter type into the parameters array
   def insert_param(self, param_type):
@@ -66,6 +93,9 @@ class FunctionTable:
   
   # Gets the parameter at [__param_counter]
   def get_next_param(self):
+    if self.__param_counter >= len(self.__params):
+      raise SemanticError('Trying to access param ({}), but function only has ({}) params!'.format(self.__param_counter + 1, len(self.__params)))
+
     param = self.__params[self.__param_counter]
     self.__param_counter += 1
     return param
@@ -80,6 +110,15 @@ class FunctionTable:
   @return_type.setter
   def return_type(self, value):
     self.__return_type = value
+  
+  # Prints the function table for debugging purposes
+  def print(self):
+    print("\n======{}======".format(self.__name))
+    print("params: {}".format(self.__params))
+    print("vars_count: {}".format(self.__vars_count))
+    print("temp_vars_count: {}".format(self.__temp_vars_count))
+    print("return_type: {}".format(self.__return_type))
+    print("func_start (quad_id): {}".format(self.__func_start))
 
 class Scope:
   def __init__(self, parent):
