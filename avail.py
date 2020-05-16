@@ -1,3 +1,5 @@
+from address_handler import AddressHandler, TEMP
+
 class Avail:
   # ================ ATTRIBUTES =====================
 
@@ -13,10 +15,12 @@ class Avail:
   # ================ PUBLIC INTERFACE =====================
 
   # Gets the next available piece of memory.
-  def next(self):
-    mem = self.__next_temp
+  def next(self, var_type):
+    mem_type = TEMP
+    # TODO: do array check and define size!
+    next_address = AddressHandler.get_instance().get_next_address(mem_type, var_type)
     self.__next_temp += 1
-    return mem
+    return next_address
   
   # Gets the next piece of memory to use without modifying the counter
   def get_next_temp_num(self):

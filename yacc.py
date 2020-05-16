@@ -3,17 +3,19 @@ import ply.yacc as yacc
 
 from lex import tokens
 from symbol_table import SymbolTable
-from algorithms import attempt_create_quadruple, attempt_create_quadruple_unary
+from algorithms import attempt_create_quadruple, attempt_create_quadruple_unary, attempt_assignment_quadruple
 from expression_handler import ExpressionHandler
 from semantic_error import SemanticError
 from quadruple import Quadruple
 from jumps_stack import JumpsStack, PendingJump, JumpHere
 from quadruple import QuadrupleStack
 from avail import Avail
+from constant_table import ConstantTable
 
 exp_handler = ExpressionHandler.get_instance()
 symbol_table = SymbolTable.get_instance()
 quad_stack = QuadrupleStack.get_instance()
+const_table = ConstantTable.get_instance()
 
 def p_program(p):
   ''' program : init function-and-vars main debug-stuff '''
@@ -63,10 +65,17 @@ def p_variable_decl_1(p):
 def p_save_var_type(p):
   ''' save_var_type :'''
   symbol_table.get_scope().get_last_saved_var().var_type = p[-1]
+  symbol_table.get_scope().set_variable_address()
 
 def p_variable_decl_2(p):
-  ''' variable-decl-2 : EQUALS expression-logical SEMICOLON
+  ''' variable-decl-2 : EQUALS expression-logical assign_var_after_decl SEMICOLON
                       | SEMICOLON '''
+
+# EMBEDDED ACTION
+def p_assign_var_after_decl(p):
+  ''' assign_var_after_decl :'''
+  var_table = symbol_table.get_scope().get_last_saved_var()
+  attempt_assignment_quadruple(var_table.name())
 
 def p_function(p):
   ''' function : FUNCTION ID register-function-name LPAREN func-params-or-empty RPAREN DOTS func-type register-function-type block '''
@@ -201,6 +210,7 @@ def p_else_if_jump(p):
 
 def p_assignment(p):
   ''' assignment : ID assignment-1'''
+  attempt_assignment_quadruple(p[1])
 
 def p_assignment_1(p):
   ''' assignment-1 : LBRACKET expression-logical RBRACKET EQUALS expression-logical SEMICOLON
@@ -354,25 +364,24 @@ def p_numeric_constant(p):
 # EMBEDDED ACTION
 def p_push_num(p):
   ''' push_num :'''
-  exp_handler.push_operand(p[-1], 'int')
+  const_table.insert_constant(p[-1], 'int')
 
 # EMBEDDED ACTION
 def p_push_string(p):
   ''' push_string :'''
-  exp_handler.push_operand(p[-1], 'string')
+  const_table.insert_constant(p[-1], 'string')
 
 # EMBEDDED ACTION
 def p_push_bool(p):
   ''' push_bool :'''
-  symbol_table = SymbolTable.get_instance()
-  exp_handler.push_operand(p[-1], 'bool')
+  const_table.insert_constant(p[-1], 'bool')
 
 # EMBEDDED ACTION
 def p_push_var(p):
   ''' push_var :'''
   tvar = symbol_table.get_scope().get_var(p[-1])
   if (tvar):
-    exp_handler.push_operand(tvar, tvar.var_type)
+    exp_handler.push_operand(tvar.address, tvar.var_type)
   else:
     raise SemanticError('No variable with id: "{}"'.format(p[-1]))
 

@@ -1,5 +1,6 @@
 from collections import deque
 from semantic_error import SemanticError
+from address_handler import AddressHandler, GLOBAL, LOCAL, TEMP, CONST
 
 # ========================== PRIVATE INTERFACE ======================
 
@@ -29,10 +30,19 @@ class VariableTable:
   def __init__(self, name, var_type):
     self.__name = name
     self.__var_type = var_type
+    self.__address = None
     self.__value = None
   
   def name(self):
     return self.__name
+  
+  @property
+  def address(self):
+    return self.__address
+  
+  @address.setter
+  def address(self, value):
+    self.__address = value
   
   @property
   def var_type(self):
@@ -49,6 +59,11 @@ class VariableTable:
   @value.setter
   def value(self, value):
     self.__value = value
+  
+  def print(self):
+    print("====== {} ======".format(self.__name))
+    print("var_type: {}".format(self.__var_type))
+    print("address: {}".format(self.__address))
 
 class FunctionTable:
   def __init__(self, name, return_type):
@@ -195,6 +210,18 @@ class Scope:
     
     self.__variables[name] = VariableTable(name, var_type)
     self.__last_saved_var = self.__variables[name]
+
+  def set_variable_address(self):
+    var_table = self.get_last_saved_var()
+    mem_type = None
+    if self.parent() is None:
+      mem_type = GLOBAL
+    else:
+      mem_type = LOCAL
+    
+    # TODO: do array check and define size!
+    next_address = AddressHandler.get_instance().get_next_address(mem_type, var_table.var_type)
+    var_table.address = next_address
   
   # Adds a player to the current scope.
   def add_player(self, player_name, location = None):
@@ -236,6 +263,7 @@ class SymbolTable:
     
   # Returns and pops current scope from scope stack.
   def pop_scope(self):
+    AddressHandler.get_instance().reset_locals()
     return self.__scope.pop()
 
   # ================ PRIVATE METHODS =================

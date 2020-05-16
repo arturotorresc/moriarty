@@ -5,18 +5,21 @@ function hola() : bool {
 }
 
 main () {
+  var first : bool = true;
   if (true and false or true and false) {
     var a : int = 3 * 2;
   }
 
   if ((hola() and true) or (false or (true and true))) {
-    var i : int = 2 + 3;
-    var b : int = 2 + 3 * 4 * 5;
+    var i : int = a + a;
+    var b : int = i + a;
   }
-  var j : int = (44 * 2 / 32 + 34 - 23 * 12);
+  var j : int = 1;
+  var myVar : int = 2;
   loop (true and true or (not false and true)) {
-    b = 2 * 3;
-    b = 1 + 2;
+    b = i + i;
+    b = a + j;
+    a = b + b;
   }
 
 }
