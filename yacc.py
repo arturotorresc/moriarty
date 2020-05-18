@@ -18,7 +18,7 @@ quad_stack = QuadrupleStack.get_instance()
 const_table = ConstantTable.get_instance()
 
 def p_program(p):
-  ''' program : init function-and-vars main debug-stuff '''
+  ''' program : init function-and-vars main '''
 
 # DEBUG ACTION
 def p_debug_stuff(p):
@@ -394,7 +394,7 @@ def p_function_call(p):
                     | ENEMY LPAREN ID push_player RPAREN
                     | RELOAD_GUN LPAREN ID push_player RPAREN
                     | GUN_LOADED LPAREN ID push_player RPAREN
-                    | ID LPAREN function-call-1
+                    | ID LPAREN gen_size function-call-1
   '''
 
 # EMBEDDED ACTION
@@ -408,18 +408,56 @@ def p_push_player(p):
 
 
 def p_function_call_1(p):
-  ''' function-call-1 : RPAREN
-                      | function-call-params RPAREN
+  ''' function-call-1 : RPAREN go-sub
+                      | function-call-params check-params RPAREN go-sub
   '''
 
 def p_function_call_params(p):
-  ''' function-call-params : expression-logical function-call-params-1
+  ''' function-call-params : expression-logical set-params function-call-params-1
   '''
 
 def p_function_call_params_1(p):
   ''' function-call-params-1 : COMMA function-call-params
                               | empty
   '''
+
+# EMBEDDED ACTION
+def p_gen_size(p):
+  ''' gen_size :'''
+  func = symbol_table.get_scope().get_function(p[-2])
+  if (func):
+    symbol_table.get_scope().current_function = func
+    quad = Quadruple("ERA", None, None, func)
+    quad_stack = QuadrupleStack.get_instance()
+    quad_stack.push_quad(quad)
+    func.reset_param_counter()
+  else:
+    raise SemanticError('No function with id: "{}"'.format(p[-2]))
+
+def p_set_params(p):
+  ''' set-params :'''
+  c_function = symbol_table.get_scope().current_function
+  c_param = c_function.get_next_param()
+  arg, arg_type = exp_handler.pop_operand()
+  if (c_param[0] == arg_type):
+    quad = Quadruple("PARAMETER", arg, c_param[1], None)
+    quad_stack = QuadrupleStack.get_instance()
+    quad_stack.push_quad(quad)
+  else:
+    raise SemanticError('Incorrect type in parameters for function with id: "{}"'.format(c_function.name))
+
+def p_check_params(p):
+  ''' check-params :'''
+  c_function = symbol_table.get_scope().current_function
+  if (not c_function.verify_params()):
+    raise SemanticError('Incorrect number of parameters for function with id: "{}"'.format(c_function.name))
+
+def p_go_sub(p):
+  ''' go-sub :'''
+  c_function = symbol_table.get_scope().current_function
+  quad = Quadruple("GOSUB", c_function, None, None)
+  quad_stack = QuadrupleStack.get_instance()
+  quad_stack.push_quad(quad)
 
 def p_array_constant(p):
   ''' array-constant :  ID LBRACKET expression-logical RBRACKET

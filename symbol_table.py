@@ -75,6 +75,7 @@ class FunctionTable:
     self.__func_start = None
     self.__temp_vars_count = 0
   
+  @property
   def name(self):
     return self.__name
 
@@ -111,10 +112,13 @@ class FunctionTable:
     if self.__param_counter >= len(self.__params):
       raise SemanticError('Trying to access param ({}), but function only has ({}) params!'.format(self.__param_counter + 1, len(self.__params)))
 
-    param = self.__params[self.__param_counter]
+    param = (self.__params[self.__param_counter], self.__param_counter)
     self.__param_counter += 1
     return param
   
+  def verify_params(self):
+    return self.__param_counter == len(self.__params)
+
   def reset_param_counter(self):
     self.__param_counter = 0
   
@@ -143,6 +147,7 @@ class Scope:
     self.__players = {}
     self.__last_saved_var = None
     self.__last_saved_func = None
+    self.__current_function = None
   
   def parent(self):
     return self.__parent
@@ -161,6 +166,14 @@ class Scope:
   
   def get_last_saved_func(self):
     return self.__last_saved_func
+
+  @property
+  def current_function(self):
+    return self.__current_function
+
+  @current_function.setter
+  def current_function(self, current_function):
+    self.__current_function = current_function
   
   # Gets a function in the current scope or any parent scope.
   def get_function(self, name):
