@@ -3,7 +3,7 @@ import ply.yacc as yacc
 
 from lex import tokens
 from symbol_table import SymbolTable
-from algorithms import attempt_create_quadruple, attempt_create_quadruple_unary, attempt_assignment_quadruple
+from algorithms import attempt_create_quadruple, attempt_create_quadruple_unary, attempt_assignment_quadruple, attempt_pickle
 from expression_handler import ExpressionHandler
 from semantic_error import SemanticError
 from quadruple import Quadruple
@@ -18,7 +18,7 @@ quad_stack = QuadrupleStack.get_instance()
 const_table = ConstantTable.get_instance()
 
 def p_program(p):
-  ''' program : init function-and-vars main '''
+  ''' program : init function-and-vars main pickle'''
 
 # DEBUG ACTION
 def p_debug_stuff(p):
@@ -28,6 +28,10 @@ def p_debug_stuff(p):
     quad_stack.pop_quad()
     print("====== QUADRUPLE {} =====".format(quad.id))
     print("( op: {} , l_opnd: {}, r_opnd: {}, res: {} )\n".format(quad.get_operator(), quad.left_operand(), quad.right_operand(), quad.result()))
+
+def p_pickle(p):
+  ''' pickle :'''
+  attempt_pickle()
 
 def p_init(p):
   ''' init : PLAYER ID save_player SEMICOLON init-1 '''
@@ -427,7 +431,8 @@ def p_gen_size(p):
   func = symbol_table.get_scope().get_function(p[-2])
   if (func):
     symbol_table.get_scope().current_function = func
-    quad = Quadruple("ERA", None, None, func)
+    size = func.vars_count + func.temp_vars_count
+    quad = Quadruple("ERA", None, None, size)
     quad_stack = QuadrupleStack.get_instance()
     quad_stack.push_quad(quad)
     func.reset_param_counter()
@@ -455,7 +460,7 @@ def p_check_params(p):
 def p_go_sub(p):
   ''' go-sub :'''
   c_function = symbol_table.get_scope().current_function
-  quad = Quadruple("GOSUB", c_function, None, None)
+  quad = Quadruple("GOSUB", c_function.name, None, c_function.func_start)
   quad_stack = QuadrupleStack.get_instance()
   quad_stack.push_quad(quad)
 

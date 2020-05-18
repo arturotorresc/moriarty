@@ -36,6 +36,8 @@ class ConstantTable:
     exp_handler = ExpressionHandler.get_instance()
     exp_handler.push_operand(address, var_type)
 
+  def return_consts(self):
+    return self.__consts
 
   # ================ PRIVATE INTERFACE =====================
   def __init__(self):

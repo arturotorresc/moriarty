@@ -1,3 +1,5 @@
+import pickle
+
 from typing import List
 from expression_handler import ExpressionHandler
 from resulting_type import ResultingType, ERROR_CODE
@@ -6,11 +8,14 @@ from quadruple import QuadrupleStack
 from avail import Avail
 from symbol_table import SymbolTable
 from semantic_error import SemanticError
+from constant_table import ConstantTable
+from intermediate_code_data import IntermediateCodeData
 
 exp_handler = ExpressionHandler.get_instance()
 avail = Avail.get_instance()
 quad_stack = QuadrupleStack.get_instance()
 symbol_table = SymbolTable.get_instance()
+constant_table = ConstantTable.get_instance()
 
 # Algorithm to create a quadruple for binary expressions if the current
 # operator is in [operands]
@@ -51,6 +56,16 @@ def attempt_assignment_quadruple(var_id):
   else:
     raise SemanticError("Type mismatch: can't assign: {} to: {}".format(result_type, var_table.var_type))
 
+# Atempts to create the obj file
+def attempt_pickle():
+  with open('intermediate_code.obj', 'wb') as output:
+    intermediate_code_data = IntermediateCodeData()
+    intermediate_code_data.save_quads(quad_stack)
+    intermediate_code_data.save_constant_table(constant_table.return_consts())
+    intermediate_code_data.save_dir_func(symbol_table.get_scope().functions())
+    intermediate_code_data.save_player_table(symbol_table.get_scope().players())
+
+    pickle.dump(intermediate_code_data, output, pickle.HIGHEST_PROTOCOL)
 
 def get_special_func_code(func):
   codes = {

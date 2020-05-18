@@ -122,6 +122,9 @@ class FunctionTable:
   def reset_param_counter(self):
     self.__param_counter = 0
   
+  def get_params_length(self):
+    return len(self.__params)
+  
   @property
   def return_type(self):
     return self.__return_type

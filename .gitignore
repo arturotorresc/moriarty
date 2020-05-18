@@ -3,3 +3,4 @@
 *.pyo
 parser.out
 parsetab.py
+*.obj
