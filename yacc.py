@@ -31,6 +31,8 @@ def p_debug_stuff(p):
 
 def p_pickle(p):
   ''' pickle :'''
+  quad = Quadruple("END_MAIN", None, None, None)
+  quad_stack.push_quad(quad)
   attempt_pickle()
 
 def p_init(p):
@@ -433,7 +435,6 @@ def p_gen_size(p):
     symbol_table.get_scope().current_function = func
     size = func.vars_count + func.temp_vars_count
     quad = Quadruple("ERA", None, None, size)
-    quad_stack = QuadrupleStack.get_instance()
     quad_stack.push_quad(quad)
     func.reset_param_counter()
   else:
@@ -446,7 +447,6 @@ def p_set_params(p):
   arg, arg_type = exp_handler.pop_operand()
   if (c_param[0] == arg_type):
     quad = Quadruple("PARAMETER", arg, c_param[1], None)
-    quad_stack = QuadrupleStack.get_instance()
     quad_stack.push_quad(quad)
   else:
     raise SemanticError('Incorrect type in parameters for function with id: "{}"'.format(c_function.name))
@@ -461,7 +461,6 @@ def p_go_sub(p):
   ''' go-sub :'''
   c_function = symbol_table.get_scope().current_function
   quad = Quadruple("GOSUB", c_function.name, None, c_function.func_start)
-  quad_stack = QuadrupleStack.get_instance()
   quad_stack.push_quad(quad)
 
 def p_array_constant(p):
