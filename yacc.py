@@ -21,13 +21,13 @@ def p_program(p):
   ''' program : init function-and-vars main pickle'''
 
 # DEBUG ACTION
-def p_debug_stuff(p):
-  ''' debug-stuff :'''
-  while not quad_stack.empty():
-    quad = quad_stack.peek_quad()
-    quad_stack.pop_quad()
-    print("====== QUADRUPLE {} =====".format(quad.id))
-    print("( op: {} , l_opnd: {}, r_opnd: {}, res: {} )\n".format(quad.get_operator(), quad.left_operand(), quad.right_operand(), quad.result()))
+# def p_debug_stuff(p):
+#   ''' debug-stuff :'''
+#   while not quad_stack.empty():
+#     quad = quad_stack.peek_quad()
+#     quad_stack.pop_quad()
+#     print("====== QUADRUPLE {} =====".format(quad.id))
+#     print("( op: {} , l_opnd: {}, r_opnd: {}, res: {} )\n".format(quad.get_operator(), quad.left_operand(), quad.right_operand(), quad.result()))
 
 def p_pickle(p):
   ''' pickle :'''
