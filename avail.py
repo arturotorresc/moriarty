@@ -1,4 +1,5 @@
 from address_handler import AddressHandler, TEMP
+from symbol_table import SymbolTable
 
 class Avail:
   # ================ ATTRIBUTES =====================
@@ -17,8 +18,13 @@ class Avail:
   # Gets the next available piece of memory.
   def next(self, var_type):
     mem_type = TEMP
-    # TODO: do array check and define size!
-    next_address = AddressHandler.get_instance().get_next_address(mem_type, var_type)
+    next_address = AddressHandler.get_instance().get_next_address(mem_type, var_type, 1)
+    # symbol_table = SymbolTable.get_instance()
+    # # We know our current scope is a function
+    # if symbol_table.get_scope().parent().get_last_saved_func():
+    #   func_table = symbol_table.get_scope().parent().get_last_saved_func()
+    #   func_table.sum_temp_var_map(var_type)
+
     self.__next_temp += 1
     return next_address
   

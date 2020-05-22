@@ -19,8 +19,7 @@ class IntermediateCodeData:
         for key in dir_func:
             value = dir_func[key]
             self.dir_func[key] = {}
-            self.dir_func[key]['name'] = value.name
-            self.dir_func[key]['temp_vars_count'] = value.temp_vars_count
+            self.dir_func[key]['temp_var_map'] = value.get_temp_var_map()
             self.dir_func[key]['vars_count'] = value.vars_count
             self.dir_func[key]['func_start'] = value.func_start
             self.dir_func[key]['params_length'] = value.get_params_length()

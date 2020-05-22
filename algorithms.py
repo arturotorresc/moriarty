@@ -29,7 +29,6 @@ def attempt_create_quadruple(operands: List[str]):
       quad = Quadruple(operator, left_op[0], right_op[0], result)
       quad_stack.push_quad(quad)
       exp_handler.push_operand(result, result_type)
-      # TODO: return temporal space to AVAIL
     else:
       raise SemanticError("Type mismatch: {} is not compatible with {}".format(left_op[1], right_op[1]))
 
@@ -51,8 +50,13 @@ def attempt_assignment_quadruple(var_id):
   var_table = symbol_table.get_scope().get_var(var_id)
   result, result_type = exp_handler.pop_operand()
   if var_table.var_type == result_type:
-    quad = Quadruple("=", result, None, var_table.address)
-    quad_stack.push_quad(quad)
+    if var_table.is_array:
+      arr_address, var_type = exp_handler.pop_operand()
+      quad = Quadruple("=", result, None, arr_address)
+      quad_stack.push_quad(quad)
+    else:
+      quad = Quadruple("=", result, None, var_table.address)
+      quad_stack.push_quad(quad)
   else:
     raise SemanticError("Type mismatch: can't assign: {} to: {}".format(result_type, var_table.var_type))
 

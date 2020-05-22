@@ -5,12 +5,14 @@ const shortid = require("shortid");
 const fs = require("fs");
 const process = require("process");
 const { exec } = require("child_process");
+const cors = require("cors");
 
 const app = express();
 
 app.use(morgan("dev"));
 const jsonParser = bodyParser.json();
 app.use(jsonParser);
+app.use(cors());
 
 // Sends an id for the user to send with their requests to
 // identify their game files.
@@ -64,6 +66,6 @@ app.post("/api/execute", (req, res) => {
   });
 });
 
-app.listen(3000, () => {
+app.listen(4000, () => {
   console.log("Server successfully started at port 3000");
 });

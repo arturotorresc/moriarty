@@ -30,7 +30,7 @@ class ConstantTable:
     else:
       mem_type = CONST
       # TODO: check const array sizes!!!!!!!!
-      address = AddressHandler.get_instance().get_next_address(mem_type, var_type)
+      address = AddressHandler.get_instance().get_next_address(mem_type, var_type, 1)
       self.__consts[var_type][value] = address
 
     exp_handler = ExpressionHandler.get_instance()
