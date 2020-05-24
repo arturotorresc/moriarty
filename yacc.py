@@ -392,25 +392,37 @@ def p_push_var(p):
     raise SemanticError('No variable with id: "{}"'.format(p[-1]))
 
 def p_function_call(p):
-  ''' function-call : MOVE LPAREN ID push_player RPAREN
-                    | SPEAK LPAREN ID push_player COMMA expression-logical RPAREN
-                    | ROTATE LPAREN ID push_player RPAREN
-                    | SHOOT LPAREN ID push_player RPAREN
-                    | JUMP LPAREN ID push_player RPAREN
-                    | ENEMY LPAREN ID push_player RPAREN
-                    | RELOAD_GUN LPAREN ID push_player RPAREN
-                    | GUN_LOADED LPAREN ID push_player RPAREN
+  ''' function-call : MOVE LPAREN ID RPAREN special_function
+                    | SPEAK LPAREN ID COMMA expression-logical RPAREN speak_function
+                    | ROTATE LPAREN ID RPAREN special_function
+                    | SHOOT LPAREN ID RPAREN special_function
+                    | JUMP LPAREN ID RPAREN special_function
+                    | ENEMY LPAREN ID RPAREN special_function
+                    | RELOAD_GUN LPAREN ID RPAREN special_function
+                    | GUN_LOADED LPAREN ID RPAREN special_function
                     | ID LPAREN gen_size function-call-1
   '''
 
 # EMBEDDED ACTION
-def p_push_player(p):
-  ''' push_player :'''
-  tplayer = symbol_table.get_scope().get_player(p[-1])
+def p_speak_function(p):
+  ''' speak_function :'''
+  tplayer = symbol_table.get_scope().get_player(p[-4])
+  result, result_type = exp_handler.pop_operand()
   if (tplayer):
-    exp_handler.push_operand(tplayer, 'player')
+    quad = Quadruple(p[-6], tplayer.player_name, None, result)
+    quad_stack.push_quad(quad)  
   else:
-    raise SemanticError('No player with id: "{}"'.format(p[-1]))
+    raise SemanticError('No player with id: "{}"'.format(p[-4]))
+
+# EMBEDDED ACTION
+def p_special_function(p):
+  '''special_function :'''
+  tplayer = symbol_table.get_scope().get_player(p[-2])
+  if (tplayer):
+    quad = Quadruple(p[-4], tplayer.player_name, None, None)
+    quad_stack.push_quad(quad)  
+  else:
+    raise SemanticError('No player with id: "{}"'.format(p[-2]))
 
 
 def p_function_call_1(p):

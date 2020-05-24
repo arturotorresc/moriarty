@@ -1,0 +1,12 @@
+player jugadorUno;
+
+main() {
+    move(jugadorUno);
+    speak(jugadorUno, (2 + 3 * 4));
+    rotate(jugadorUno);
+    shoot(jugadorUno);
+    jump(jugadorUno);
+    enemy?(jugadorUno);
+    reload_gun(jugadorUno);
+    gun_loaded?(jugadorUno);
+}
