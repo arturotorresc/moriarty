@@ -1,0 +1,10 @@
+player jugadorUno;
+
+main () {
+  var i[3] : int;
+  i[2] = 3;
+  i[1] = 13;
+  var cdsc : int = 23 + 34 + 12 * 32;
+  var dasd : string = "yeeeheeehee";
+  var asdassdasds : bool = true;
+}

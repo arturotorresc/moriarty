@@ -10,5 +10,8 @@ test:
 accept:
 	python yacc.test.py ./example_programs/accept.txt
 
-run-app:
+run-frontend:
 	cd front-end && yarn start
+
+run-backend:
+	cd backend && npm start
