@@ -16,6 +16,7 @@ exp_handler = ExpressionHandler.get_instance()
 symbol_table = SymbolTable.get_instance()
 quad_stack = QuadrupleStack.get_instance()
 const_table = ConstantTable.get_instance()
+jumps_stack = JumpsStack.get_instance()
 
 def p_program(p):
   ''' program : init_game init goto_main function-and-vars main pickle'''
