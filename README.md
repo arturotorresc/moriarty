@@ -15,6 +15,8 @@ Test parser
 
 Start frontend client
 ```make run-frontend```
+* Before running make sure to `cd front-end && npm install`
 
 Start backend server
 ```make run-backend```
+* Before running make sure to `cd backend && npm install`
