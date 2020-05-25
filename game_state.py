@@ -246,28 +246,3 @@ class GameState:
   
   def __add_action(self, action):
     self.__actions.append(action)
-
-
-g = GameState.get_instance()
-g.print()
-
-g.initialize_player('jaja')
-g.initialize_player('jaja')
-g.initialize_player('jaja')
-
-g.print()
-
-g.move_player('jaja')
-g.move_player('jaja')
-g.move_player('jaja')
-g.rotate_player('jaja')
-g.rotate_player('jaja')
-g.rotate_player('jaja')
-g.speak('jaja', 1 + 1)
-g.gun_loaded('jaja')
-g.enemy_in_front('jaja')
-g.shoot_enemy('jaja')
-g.gun_loaded('jaja')
-g.reload_gun('jaja')
-
-g.write_game_state()
