@@ -70,6 +70,9 @@ def p_function_and_vars(p):
 
 def p_main(p):
   ''' main : MAIN LPAREN RPAREN block '''
+  jumps_stack = JumpsStack.get_instance()
+  pending_jump_quad = jumps_stack.pop_quad()
+  pending_jump_quad.set_jump(QuadrupleStack.next_quad_id())
 
 def p_variable_decl(p):
   ''' variable-decl : VAR ID save_var variable-decl-1 '''
