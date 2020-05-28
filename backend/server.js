@@ -14,12 +14,6 @@ const jsonParser = bodyParser.json();
 app.use(jsonParser);
 app.use(cors());
 
-<<<<<<< Updated upstream
-// Sends an id for the user to send with their requests to
-// identify their game files.
-app.get("/api/user-id", (req, res) => {
-  res.json({ id: shortid.generate() });
-=======
 const GAME_STATE_FILE = "/game_states/game_state.json";
 
 function getRandomInt(min, max) {
@@ -93,17 +87,11 @@ app.post("/api/new-game-state", (req, res) => {
       res.json(gameState);
     }
   );
->>>>>>> Stashed changes
 });
 
 // Fetches the game state from the local files.
 app.get("/api/game-state", (req, res) => {
-<<<<<<< Updated upstream
-  const { id } = req.body;
-  fs.readFile(`./game_states/${id}_state.json`, "utf-8", (err, data) => {
-=======
   fs.readFile(__dirname + GAME_STATE_FILE, "utf-8", (err, data) => {
->>>>>>> Stashed changes
     if (err) {
       console.log(err);
       return res.status(500).json({ error: err.message });
@@ -121,31 +109,6 @@ app.get("/api/game-state", (req, res) => {
 });
 
 app.post("/api/execute", (req, res) => {
-<<<<<<< Updated upstream
-  const { code, id } = req.body;
-  const fileName = `${id}_code.txt`;
-  fs.writeFile(`./game_code/${fileName}`, code, { flag: "w" }, (err) => {
-    if (err) {
-      console.log(err);
-      return res.status(500).json({ error: err.message });
-    }
-    console.log(`Moriarty code saved as: ${fileName} under game_code/`);
-    process.chdir("../");
-    console.log("Changed directory for Moriarty code execution");
-    exec(
-      `./moriarty.sh ./backend/game_code/${fileName}`,
-      (err, stdout, stderr) => {
-        if (err) {
-          console.log("An error ocurred while executing code", err);
-          return res.status(500).json({ error: err.message });
-        }
-        process.chdir("./backend");
-        console.log("Code executed correctly");
-        res.json({ stdout, stderr, message: "Code compiled and executed" });
-      }
-    );
-  });
-=======
   const { code } = req.body;
   const fileName = "code.txt";
   fs.writeFile(
@@ -175,7 +138,6 @@ app.post("/api/execute", (req, res) => {
       );
     }
   );
->>>>>>> Stashed changes
 });
 
 app.listen(4000, () => {

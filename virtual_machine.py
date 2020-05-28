@@ -1,6 +1,7 @@
 import pickle
 
 from memory import Memory
+from game_state import GameState
 
 class VirtualMachine:
   def __init__(self, file_name):
@@ -79,8 +80,12 @@ class VirtualMachine:
         self.__last_quad = None
         memory.exit_func_call()
       elif operator == 'INIT_GAME':
-        # LLAMAR INIT GAME DE GAME_STATE
-        pass
+        GameState.get_instance()
+        self.__ip += 1
+      elif operator == 'INIT_PLAYER':
+        game_state = GameState.get_instance()
+        game_state.initialize_player(left)
+        self.__ip += 1
       # Quitar este else
       else:
         self.__ip += 1

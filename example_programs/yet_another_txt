@@ -1,0 +1,7 @@
+player jugadorUno1;
+
+main() { 
+  if (true) { 
+    var i : int = 1 + 1; 
+  }
+}
