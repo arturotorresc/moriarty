@@ -1,5 +1,5 @@
-from address_handler import AddressHandler, TEMP
-from symbol_table import SymbolTable
+from address_handler import AddressHandler, TEMP, TEMP_LOCALS
+from check_global import Global
 
 class Avail:
   # ================ ATTRIBUTES =====================
@@ -17,20 +17,24 @@ class Avail:
 
   # Gets the next available piece of memory.
   def next(self, var_type):
-    mem_type = TEMP
+    mem_type = TEMP if self.__is_global() else TEMP_LOCALS
     next_address = AddressHandler.get_instance().get_next_address(mem_type, var_type, 1)
-    # symbol_table = SymbolTable.get_instance()
-    # # We know our current scope is a function
-    # if symbol_table.get_scope().parent().get_last_saved_func():
-    #   func_table = symbol_table.get_scope().parent().get_last_saved_func()
-    #   func_table.sum_temp_var_map(var_type)
 
-    self.__next_temp += 1
+    if self.__is_global():
+      self.__global_temp += 1
+    else:
+      self.__local_temp += 1
     return next_address
   
   # Gets the next piece of memory to use without modifying the counter
   def get_next_temp_num(self):
-    return self.__next_temp
+    if self.__is_global():
+      return self.__global_temp
+    else:
+      return self.__local_temp
+
+  def reset_locals(self):
+    self.__local_temp = 0
 
   # ================ PRIVATE INTERFACE =====================
   def __init__(self):
@@ -38,4 +42,8 @@ class Avail:
       raise Exception("Avail is a Singleton! Access the instance through: Avail.get_instance()")
     else:
       Avail.__instance = self
-      self.__next_temp = 0
+      self.__global_temp = 0
+      self.__local_temp = 0
+
+  def __is_global(self):
+    return Global.get_instance().is_in_global

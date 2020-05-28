@@ -1,9 +1,11 @@
+from check_global import Global
+
 GLOBAL = 'global'
 LOCAL = 'local'
 TEMP = 'temp'
+TEMP_LOCALS = 'temp_locals'
 CONST = 'const'
 POINTERS = 'pointers'
-
 
 class AddressHandler:
   # ================ ATTRIBUTES =====================
@@ -19,7 +21,6 @@ class AddressHandler:
   
   # ================ PUBLIC INTERFACE =====================
 
-
   # Gets the next address for the specified var_type and mem_type
   def get_next_address(self, mem_type, var_type, size):
     next_addr = self.__addresses[mem_type][var_type]
@@ -28,15 +29,26 @@ class AddressHandler:
   
   # Resets the local var counter
   def reset_locals(self):
-    self.__addresses[LOCAL]['int'] = 7000
-    self.__addresses[LOCAL]['bool'] = 9000
-    self.__addresses[LOCAL]['string'] = 11000
+    self.__addresses[LOCAL]['int'] = 40_000
+    self.__addresses[LOCAL]['bool'] = 50_000
+    self.__addresses[LOCAL]['string'] = 60_000
+
+  def reset_local_temps(self):
+    self.__addresses[TEMP_LOCALS]['int'] = 100_000
+    self.__addresses[TEMP_LOCALS]['bool'] = 110_000
+    self.__addresses[TEMP_LOCALS]['string'] = 120_000
   
   # Gets the local used variables
   def get_local_counts(self):
-    int_count = self.__addresses[LOCAL]['int'] - 7000
-    bool_count = self.__addresses[LOCAL]['bool'] - 9000
-    string_count = self.__addresses[LOCAL]['string'] - 11000
+    int_count = self.__addresses[LOCAL]['int'] - 40_000
+    bool_count = self.__addresses[LOCAL]['bool'] - 50_000
+    string_count = self.__addresses[LOCAL]['string'] - 60_000
+    return (int_count, bool_count, string_count)
+
+  def get_temp_local_counts(self):
+    int_count = self.__addresses[TEMP_LOCALS]['int'] - 100_000
+    bool_count = self.__addresses[TEMP_LOCALS]['bool'] - 110_000
+    string_count = self.__addresses[TEMP_LOCALS]['string'] - 120_000
     return (int_count, bool_count, string_count)
 
   # ================ PRIVATE INTERFACE =====================
@@ -47,28 +59,33 @@ class AddressHandler:
       AddressHandler.__instance = self
       self.__addresses = {
         GLOBAL: {
-          'int': 1000,
-          'bool': 3000,
-          'string': 5000
+          'int': 10_000,
+          'bool': 20_000,
+          'string': 30_000
         },
         LOCAL: {
-          'int': 7000,
-          'bool': 9000,
-          'string': 11000
+          'int': 40_000,
+          'bool': 50_000,
+          'string': 60_000
         },
         TEMP: {
-          'int': 13000,
-          'bool': 15000,
-          'string': 17000
+          'int': 70_000,
+          'bool': 80_000,
+          'string': 90_000
+        },
+        TEMP_LOCALS: {
+          'int': 100_000,
+          'bool': 110_000,
+          'string': 120_000
         },
         CONST: {
-          'int': 19000,
-          'bool': 21000,
-          'string': 23000
+          'int': 130_000,
+          'bool': 140_000,
+          'string': 150_000
         },
         POINTERS: {
-          'int': 25000,
-          'bool': 27000,
-          'string': 29000
+          'int': 160_000,
+          'bool': 170_000,
+          'string': 180_000
         }
       }

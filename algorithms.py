@@ -70,19 +70,3 @@ def attempt_pickle():
     intermediate_code_data.save_player_table(symbol_table.get_scope().players())
 
     pickle.dump(intermediate_code_data, output, pickle.HIGHEST_PROTOCOL)
-
-def get_special_func_code(func):
-  codes = {
-    'move': 'sf_MOVE',
-    'speak': 'sf_SPEAK',
-    'rotate': 'sf_ROTATE',
-    'shoot': 'sf_SHOOT',
-    'enemy?': 'sf_ENEMY',
-    'reload_gun': 'sf_RELOAD_GUN',
-    'gun_loaded': 'sf_GUN_LOADED',
-  }
-  return codes[func]
-
-def special_func_quad(func):
-  code = get_special_func_code(func)
-  quad = Quadruple(code, )

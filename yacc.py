@@ -113,6 +113,7 @@ def p_function(p):
 def p_register_function_name(p):
   ''' register-function-name :'''
   symbol_table.get_scope().add_function(p[-1])
+  symbol_table.get_scope().add_variable(p[-1])
   symbol_table.push_scope()
 
 # EMBEDDED ACTION
@@ -120,6 +121,8 @@ def p_register_function_type(p):
   ''' register-function-type :'''
   func_table = symbol_table.get_scope().parent().get_last_saved_func()
   func_table.return_type = p[-1]
+  symbol_table.get_scope().parent().get_last_saved_var().var_type = p[-1]
+  symbol_table.get_scope().parent().set_variable_address()
   # We point our next quad to be generated as the start of the function
   func_table.func_start = QuadrupleStack.next_quad_id()
 
@@ -231,7 +234,9 @@ def p_assignment(p):
 
 def p_save_access_id(p):
   ''' save_access_id :'''
-  symbol_table.get_scope().last_accessed_id = p[-1]
+  var = symbol_table.get_scope().get_var(p[-1])
+  if var.is_array:
+    symbol_table.get_scope().last_accessed_id = p[-1]
 
 def p_assignment_1(p):
   ''' assignment-1 : LBRACKET fake_arr_wall expression-logical save_array_index_exp RBRACKET EQUALS expression-logical SEMICOLON
@@ -287,7 +292,19 @@ def p_return(p):
 
 def p_return_1(p):
   ''' return-1 : SEMICOLON
-               | expression-logical SEMICOLON '''
+               | expression-logical save_return_value SEMICOLON '''
+
+def p_save_return_value(p):
+  ''' save_return_value : '''
+  function = symbol_table.get_scope().parent().get_last_saved_func().name
+  var_table = symbol_table.get_scope().get_var(function)
+  result, result_type = exp_handler.pop_operand()
+  if var_table.var_type == result_type:
+    quad = Quadruple("RETURN", var_table.address, None, result)
+    quad_stack.push_quad(quad)
+    exp_handler.push_operand(var_table.address, var_table.var_type)
+  else:
+    raise SemanticError('Return type for function "{}" expected "{}" and got "{}"'.format(function, var_table.var_type, result_type))
 
 def p_expression_logical(p):
   ''' expression-logical : expression expression-logical-1 save-logical-quad'''
@@ -358,7 +375,7 @@ def p_factor(p):
   ''' factor : LPAREN push_par expression-logical RPAREN pop_par
              | constant
              | factor-num
-             | SIGN factor-num
+             | SIGN factor-num flip
              | NOT push_op not-options
   '''
 
@@ -367,6 +384,16 @@ def p_not_options(p):
                   | constant
                   | LPAREN push_par expression-logical RPAREN pop_par
   '''
+
+# EMBEDDED ACTION
+def p_flip(p):
+  ''' flip : '''
+  sign = 'ABS' if p[-2] == '+' else 'NEGATIVE'
+  number = exp_handler.pop_operand()[0]
+  result = Avail.get_instance().next('int')
+  quad = Quadruple(sign, number, None, result)
+  quad_stack.push_quad(quad)
+  exp_handler.push_operand(result, 'int')
 
 # EMBEDDED ACTION
 def p_push_par(p):
@@ -428,7 +455,7 @@ def p_function_call(p):
                     | ENEMY LPAREN ID RPAREN special_function
                     | RELOAD_GUN LPAREN ID RPAREN special_function
                     | GUN_LOADED LPAREN ID RPAREN special_function
-                    | ID LPAREN gen_size function-call-1
+                    | ID LPAREN push_par gen_size function-call-1
   '''
 
 # EMBEDDED ACTION
@@ -454,8 +481,8 @@ def p_special_function(p):
 
 
 def p_function_call_1(p):
-  ''' function-call-1 : RPAREN go-sub
-                      | function-call-params check-params RPAREN go-sub
+  ''' function-call-1 : RPAREN pop_par go-sub
+                      | function-call-params check-params RPAREN pop_par go-sub
   '''
   symbol_table.get_scope().current_function = None
 
@@ -471,7 +498,7 @@ def p_function_call_params_1(p):
 # EMBEDDED ACTION
 def p_gen_size(p):
   ''' gen_size :'''
-  func = symbol_table.get_scope().get_function(p[-2])
+  func = symbol_table.get_scope().get_function(p[-3])
   if (func):
     symbol_table.get_scope().current_function = func
     quad = Quadruple("ERA", None, None, func.name)
@@ -486,7 +513,7 @@ def p_set_params(p):
   c_param = c_function.get_next_param()
   arg, arg_type = exp_handler.pop_operand()
   if (c_param[0] == arg_type):
-    quad = Quadruple("PARAMETER", arg, c_param[1], arg_type)
+    quad = Quadruple("PARAMETER", arg, c_param[2], arg_type)
     quad_stack.push_quad(quad)
   else:
     raise SemanticError('Incorrect type in parameters for function with id: "{}"'.format(c_function.name))
@@ -502,6 +529,12 @@ def p_go_sub(p):
   c_function = symbol_table.get_scope().current_function
   quad = Quadruple("GOSUB", c_function.name, None, c_function.func_start)
   quad_stack.push_quad(quad)
+  var_table = symbol_table.get_scope().get_var(c_function.name)
+  if (var_table.var_type != 'void'):
+    temp = Avail.get_instance().next(var_table.var_type)
+    exp_handler.push_operand(temp, var_table.var_type)
+    quad = Quadruple("=", var_table.address, None, temp)
+    quad_stack.push_quad(quad)
 
 def p_array_constant(p):
   ''' array-constant :  ID LBRACKET fake_arr_wall expression-logical save_array_index_exp RBRACKET

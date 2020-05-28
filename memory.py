@@ -1,42 +1,11 @@
-GLOBAL_RANGE = range(1000, 6999)
-LOCAL_RANGE = range(7000, 12999)
-TEMPORAL_RANGE = range(13000, 18999)
-CONSTANT_RANGE = range(19000, 24999)
-POINTER_RANGE = range(25000, 29000)
+GLOBAL_RANGE = range(10_000, 39_999)
+LOCAL_RANGE = range(40_000, 69_999)
+TEMPORAL_RANGE = range(70_000, 99_999)
+TEMP_LOCAL_RANGE = range(100_000, 129_999)
+CONSTANT_RANGE = range(130_000, 159_999)
+POINTER_RANGE = range(160_000, 189_999)
 
-MEM_SIZE = 2000
-
-# The stack
-class LocalMemory:
-  def __init__(self):
-    self.__available_spaces = { 'int': MEM_SIZE, 'bool': MEM_SIZE, 'string': MEM_SIZE }
-    self.__partitions = {}
-  
-  def register_partition(self, name):
-    self.__partitions[name] = { 'int': {}, 'bool': {}, 'string': {} }
-  
-  def delete_partition(self, name):
-    print('partitionnssssss',self.__partitions[name])
-    self.__available_spaces['int'] += len(self.__partitions[name]['int'].keys())
-    self.__available_spaces['bool'] += len(self.__partitions[name]['bool'].keys())
-    self.__available_spaces['string'] += len(self.__partitions[name]['string'].keys())
-    del self.__partitions[name]
-  
-  def get_address_value(self, name, address, var_type):
-    self.print_region()
-    return self.__partitions[name][var_type][address]
-  
-  def set_address_value(self, name, address, var_type, value):
-    self.__partitions[name][var_type][address] = value
-  
-  def assign_memory(self, var_type, size):
-    self.__available_spaces[var_type] -= size
-    if self.__available_spaces[var_type] <= 0:
-      raise Exception('Stack overflow, no more memory')
-  
-  def print_region(self):
-    print("==PARTITIONS==")
-    print(self.__partitions)
+MEM_SIZE = 10_000
 
 class MemoryRegion:
     def __init__(self):
@@ -89,18 +58,14 @@ class Memory:
   def get_address_value(self, address, pointer_value = False):
       region, initial_address = self.get_memory_region(address, pointer_value)
       address_type = self.get_address_type(address, initial_address)
-      if region == self.__local:
-        if self.__current_func is None:
-          raise Exception('Trying to acccess local memory but no function was called')
-        return region.get_address_value(self.__current_func, address, address_type)
       return region.get_address_value(address, address_type)
           
   def get_address_type(self, address, initial_address):
-      if initial_address <= address <= initial_address + 1999:
+      if initial_address <= address <= initial_address + MEM_SIZE - 1:
           return 'int'
-      if initial_address + 2000 <= address <= initial_address + 3999:
+      if initial_address + MEM_SIZE <= address <= initial_address + (MEM_SIZE * 2 - 1):
           return 'bool'
-      if initial_address + 4000 <= address <= initial_address + 5999:
+      if initial_address + (MEM_SIZE * 2) <= address <= initial_address + (MEM_SIZE * 3 - 1):
           return 'string'
       raise Exception("Invalid memory address, out of bounds")
 
@@ -108,9 +73,11 @@ class Memory:
       if address in GLOBAL_RANGE:
           return (self.__global, GLOBAL_RANGE[0])
       elif address in LOCAL_RANGE:
-          return (self.__local, LOCAL_RANGE[0])
+          return (self.__local[self.__current_memory_local], LOCAL_RANGE[0])
       elif address in TEMPORAL_RANGE:
           return (self.__temp, TEMPORAL_RANGE[0])
+      elif address in TEMP_LOCAL_RANGE:
+          return (self.__temp_local[self.__current_memory_local], TEMP_LOCAL_RANGE[0])
       elif address in CONSTANT_RANGE:
           return (self.__constant, CONSTANT_RANGE[0])
       elif address in POINTER_RANGE:
@@ -126,33 +93,34 @@ class Memory:
   def set_address_value(self, address, value, set_pointer = False):
       region, initial_address = self.get_memory_region(address, set_pointer)
       address_type = self.get_address_type(address, initial_address)
-      if region == self.__local:
-        if self.__current_func is None:
-          raise Exception('Trying to acccess local memory but no function was called')
-        region.set_address_value(self.__current_func, address, address_type, value)
-      else:
-        region.set_address_value(address, value, address_type)
+      region.set_address_value(address, value, address_type)
 
-  # Sets a flag to note that [function_name] was called.
-  def start_func_call(self, function_name, dir_func):
-    self.__current_func = function_name
-    self.__local.register_partition(function_name)
-    for key in dir_func['vars_count']:
-      self.__local.assign_memory(key, dir_func['vars_count'][key])
+  def push_locals(self):
+      self.__local.append(MemoryRegion())
+      self.__temp_local.append(MemoryRegion())
+  
+  def pop_locals(self):
+      self.__local.pop()
+      self.__temp_local.pop()
 
-  # Removes function call flag
-  def exit_func_call(self):
-    print(self.__current_func)
-    self.__local.delete_partition(self.__current_func)
-    self.__current_func = None
+  def use_past_local(self):
+      if (len(self.__local) > 1):
+        self.__current_memory_local = -2
+
+  def unuse_past_local(self):
+      self.__current_memory_local = -1
 
   def print_addresses(self):
       print("=======GLOBAL:")
       self.__global.print_region()
       print("=======LOCAL:")
-      self.__local.print_region()
+      if self.__local:
+        self.__local[self.__current_memory_local].print_region()
       print("=======TEMP:")
       self.__temp.print_region()
+      print("=======TEMP LOCAL:")
+      if self.__temp_local:
+        self.__temp_local[self.__current_memory_local].print_region()
       print("=======CONSTANT:")
       self.__constant.print_region()
       print("=======POINTERS:")
@@ -165,8 +133,10 @@ class Memory:
     else:
       Memory.__instance = self
       self.__global = MemoryRegion()
-      self.__local = LocalMemory()
+      self.__local = []
       self.__temp = MemoryRegion()
+      self.__temp_local = []
       self.__constant = MemoryRegion()
       self.__pointers = MemoryRegion()
-      self.__current_func = None
+      self.__locals_count = 0
+      self.__current_memory_local = -1

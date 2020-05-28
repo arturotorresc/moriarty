@@ -1,11 +1,14 @@
 import pickle
 
 from memory import Memory, POINTER_RANGE, LOCAL_RANGE, MEM_SIZE
+from collections import deque
+
+special_functions = ['move', 'speak', 'rotate', 'shoot', 'jump', 'enemy?', 'reload_gun', 'gun_loaded?']
 
 class VirtualMachine:
   def __init__(self, file_name):
     self.__ip = 0
-    self.__last_quad = None
+    self.__last_quad = deque()
     with open(file_name, 'rb') as input:
       data = pickle.load(input)
       self.__player_table = data.player_table
@@ -22,12 +25,17 @@ class VirtualMachine:
     next_quad = self.__quadruples[self.__ip]
     while next_quad[0] != 'END_MAIN':
       operator, left, right, result = next_quad
-      print(operator)
+      # print('OPERATOR====', operator, left, right, result)
 
       if operator in ['+', '-', '*', '/', '<=', '>=', '<', '>', '!=', '==', 'and', 'or']:
         left_val = memory.get_address_value(left)
         right_val = memory.get_address_value(right)
         value = self.operations(operator, left_val, right_val)
+        memory.set_address_value(result, value)
+        self.__ip += 1
+      elif operator in ['ABS', 'NEGATIVE']:
+        left_val = memory.get_address_value(left)
+        value = self.flip(operator, left_val)
         memory.set_address_value(result, value)
         self.__ip += 1
       elif operator == '=':
@@ -60,36 +68,45 @@ class VirtualMachine:
         memory.set_address_value(result, access_addr, True)
         self.__ip += 1
       elif operator == 'ERA':
-        memory.start_func_call(result, self.__dir_func[result])
+        memory.push_locals()
+        memory.use_past_local()
         self.__ip += 1
       elif operator == 'PARAMETER':
-        # TENEMOS UN PROBLEMA PQ LE ESTAMOS SUMANDO LA POSICION
-        # SIN CHECAR SI ES EL PRIMER STRING QUE ASIGNAMOS O EL PRIMER BOOL O ASI
         value = memory.get_address_value(left)
         initial_address = None
         if result == 'int':
           initial_address = LOCAL_RANGE[0]
         elif result == 'bool':
           initial_address = LOCAL_RANGE[0] + MEM_SIZE
-        elif result == 'string': 
+        elif result == 'string':
           initial_address = LOCAL_RANGE[0] + MEM_SIZE * 2
+        memory.unuse_past_local()
         memory.set_address_value(initial_address + right, value)
+        memory.use_past_local()
         self.__ip += 1
       elif operator == 'GOSUB':
-        self.__last_quad = self.__ip
+        memory.unuse_past_local()
+        self.__last_quad.append(self.__ip + 1)
         self.__ip = result
+      elif operator == 'RETURN':
+        result_value = memory.get_address_value(result)
+        memory.set_address_value(left, result_value)
+        self.__ip += 1
       elif operator == 'ENDFUNC':
-        self.__ip = self.__last_quad
-        self.__last_quad = None
-        memory.exit_func_call()
+        self.__ip = self.__last_quad.pop()
+        memory.pop_locals()
       elif operator == 'GOTO_MAIN':
         self.__ip = result
+      elif operator in special_functions:
+        print(operator)
+        self.__ip += 1
       # TODO: Quitar este else
       else:
         self.__ip += 1
         
       next_quad = self.__quadruples[self.__ip]
-  
+    print('PROGRAM OVER')
+
   def operations(self, operator, left, right):
     if operator == '+':
       return left + right
@@ -115,4 +132,10 @@ class VirtualMachine:
       return left and right
     if operator == 'or':
       return left or right
+    
+  def flip(self, operator, left):
+    if operator == 'ABS':
+      return abs(left)
+    if operator == 'NEGATIVE':
+      return left * (-1)
     
