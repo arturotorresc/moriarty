@@ -11,26 +11,37 @@ from jumps_stack import JumpsStack, PendingJump, JumpHere
 from quadruple import QuadrupleStack
 from avail import Avail
 from constant_table import ConstantTable
-from address_handler import AddressHandler, POINTERS
 
 exp_handler = ExpressionHandler.get_instance()
 symbol_table = SymbolTable.get_instance()
 quad_stack = QuadrupleStack.get_instance()
 const_table = ConstantTable.get_instance()
-address_handler = AddressHandler.get_instance()
 jumps_stack = JumpsStack.get_instance()
 
 def p_program(p):
-  ''' program : init function-and-vars main pickle'''
+  ''' program : init_game init goto_main function-and-vars main pickle'''
+
+# EMBEDDED ACTION
+def p_goto_main(p):
+  ''' goto_main :'''
+  quad = Quadruple('GOTO', None, None, PendingJump())
+  jumps_stack.push_quad(quad)
+  quad_stack.push_quad(quad)
+
+# EMBEDDED ACTION
+def p_init_main(p):
+  ''' init_game :'''
+  quad = Quadruple('INIT_GAME', None, None, None)
+  quad_stack.push_quad(quad)
 
 # DEBUG ACTION
-def p_debug_stuff(p):
-  ''' debug :'''
-  while not quad_stack.empty():
-    quad = quad_stack.peek_quad()
-    quad_stack.pop_quad()
-    print("====== QUADRUPLE {} =====".format(quad.id))
-    print("( op: {} , l_opnd: {}, r_opnd: {}, res: {} )\n".format(quad.get_operator(), quad.left_operand(), quad.right_operand(), quad.result()))
+# def p_debug_stuff(p):
+#   ''' debug :'''
+#   while not quad_stack.empty():
+#     quad = quad_stack.peek_quad()
+#     quad_stack.pop_quad()
+#     print("====== QUADRUPLE {} =====".format(quad.id))
+#     print("( op: {} , l_opnd: {}, r_opnd: {}, res: {} )\n".format(quad.get_operator(), quad.left_operand(), quad.right_operand(), quad.result()))
 
 def p_pickle(p):
   ''' pickle :'''
@@ -40,14 +51,13 @@ def p_pickle(p):
 
 def p_init(p):
   ''' init : PLAYER ID save_player SEMICOLON init-1 '''
-  quad = Quadruple('GOTO_MAIN', None, None, PendingJump())
-  jumps_stack.push_quad(quad)
-  quad_stack.push_quad(quad)
 
 # EMBEDDED ACTION
 def p_save_player(p):
   ''' save_player :'''
   symbol_table.get_scope().add_player(p[-1])
+  quad = Quadruple('INIT_PLAYER', p[-1], None, None)
+  quad_stack.push_quad(quad)
 
 def p_init_1(p):
   ''' init-1 : init
@@ -59,13 +69,7 @@ def p_function_and_vars(p):
                         | empty '''
 
 def p_main(p):
-  ''' main : MAIN LPAREN RPAREN set_main_jump block '''
-
-def p_set_main_jump(p):
-  ''' set_main_jump :'''
-  pending_jump_quad = jumps_stack.pop_quad()
-  pending_jump_quad.set_jump(QuadrupleStack.next_quad_id())
-
+  ''' main : MAIN LPAREN RPAREN block '''
 
 def p_variable_decl(p):
   ''' variable-decl : VAR ID save_var variable-decl-1 '''
@@ -76,15 +80,8 @@ def p_save_var(p):
   symbol_table.get_scope().add_variable(p[-1])
 
 def p_variable_decl_1(p):
-  ''' variable-decl-1 : LBRACKET INTEGER save_array RBRACKET DOTS type save_var_type variable-decl-2
+  ''' variable-decl-1 : LBRACKET INTEGER RBRACKET DOTS type save_var_type variable-decl-2
                       | DOTS type save_var_type variable-decl-2 '''
-
-# EMBEDDED ACTION
-def p_save_array(p):
-  ''' save_array :'''
-  arr_var = symbol_table.get_scope().get_last_saved_var()
-  arr_var.is_array = True
-  arr_var.dimension_list = [p[-1], None]
 
 # EMBEDDED ACTION
 def p_save_var_type(p):
@@ -106,6 +103,8 @@ def p_function(p):
   ''' function : FUNCTION ID register-function-name LPAREN func-params-or-empty RPAREN DOTS func-type register-function-type block '''
   func_table = symbol_table.get_scope().get_function(p[2])
   vars_count = len(symbol_table.get_scope().vars().keys())
+  func_table.vars_count = vars_count
+  func_table.temp_vars_count = Avail.get_instance().get_next_temp_num() - func_table.temp_vars_count
   symbol_table.pop_scope()
   quad_stack.push_quad(Quadruple('ENDFUNC', None, None, None))
 
@@ -125,6 +124,9 @@ def p_register_function_type(p):
   symbol_table.get_scope().parent().set_variable_address()
   # We point our next quad to be generated as the start of the function
   func_table.func_start = QuadrupleStack.next_quad_id()
+  # We temporarily store the next temp variable to be used to later calculate
+  # the number of temp vars used.
+  func_table.temp_vars_count = Avail.get_instance().get_next_temp_num()
 
 def p_func_params_or_empty(p):
   ''' func-params-or-empty : func-params
@@ -143,7 +145,6 @@ def p_save_param_type(p):
   param_type = p[-1]
   symbol_table.get_scope().get_last_saved_var().var_type = param_type
   symbol_table.get_scope().parent().get_last_saved_func().insert_param(param_type)
-  symbol_table.get_scope().set_variable_address()
 
 def p_func_params_2(p):
   ''' func-params-2 : COMMA func-params
@@ -187,6 +188,7 @@ def p_statement(p):
 # EMBEDDED ACTION
 def p_exit_if_jump(p):
   ''' exit-if-jump :'''
+  jumps_stack = JumpsStack.get_instance()
   pending_jump_quad = jumps_stack.pop_quad()
   pending_jump_quad.set_jump(QuadrupleStack.next_quad_id())
 
@@ -203,6 +205,7 @@ def p_push_if_jump(p):
     raise SemanticError("Result of expression is not of type 'bool'. Found '{}' instead.".format(var_type))
   jump_quad = Quadruple("GOTOF", var, None, PendingJump())
   quad_stack.push_quad(jump_quad)
+  jumps_stack = JumpsStack.get_instance()
   jumps_stack.push_quad(jump_quad)
 
 def p_conditional_1(p):
@@ -218,6 +221,7 @@ def p_else_jump(p):
   ''' else-jump :'''
   inconditional_jump = Quadruple("GOTO", None, None, PendingJump())
   quad_stack.push_quad(inconditional_jump)
+  jumps_stack = JumpsStack.get_instance()
   pending_jump_quad = jumps_stack.pop_quad()
   pending_jump_quad.set_jump(QuadrupleStack.next_quad_id())
   jumps_stack.push_quad(inconditional_jump)
@@ -225,11 +229,12 @@ def p_else_jump(p):
 # EMBEDDED ACTION
 def p_else_if_jump(p):
   ''' else-if-jump :'''
+  jumps_stack = JumpsStack.get_instance()
   pending_jump_quad = jumps_stack.pop_quad()
   pending_jump_quad.set_jump(QuadrupleStack.next_quad_id())
 
 def p_assignment(p):
-  ''' assignment : ID save_access_id assignment-1'''
+  ''' assignment : ID assignment-1'''
   attempt_assignment_quadruple(p[1])
 
 def p_save_access_id(p):
@@ -239,21 +244,8 @@ def p_save_access_id(p):
     symbol_table.get_scope().last_accessed_id = p[-1]
 
 def p_assignment_1(p):
-  ''' assignment-1 : LBRACKET fake_arr_wall expression-logical save_array_index_exp RBRACKET EQUALS expression-logical SEMICOLON
+  ''' assignment-1 : LBRACKET expression-logical RBRACKET EQUALS expression-logical SEMICOLON
                    | EQUALS expression-logical SEMICOLON '''
-
-# EMBEDDED ACTION
-def p_save_array_index_exp(p):
-  ''' save_array_index_exp :'''
-  last_accessed_id = symbol_table.get_scope().last_accessed_id
-  var_table = symbol_table.get_scope().get_var(last_accessed_id)
-  quad = Quadruple('VERIFY_DIM', exp_handler.peek_operand()[0], None, var_table.size - 1)
-  quad_stack.push_quad(quad)
-  next_address = address_handler.get_next_address(POINTERS, var_table.var_type, 1)
-  quad = Quadruple('ADDRESS_SUM', var_table.address, exp_handler.pop_operand()[0], next_address)
-  quad_stack.push_quad(quad)
-  exp_handler.push_operand(next_address, var_table.var_type)
-  exp_handler.pop_parenthesis()
 
 def p_loop(p):
   ''' loop : LOOP add-loop-jump LPAREN expression-logical RPAREN loop-false block loop-end '''
@@ -262,7 +254,7 @@ def p_loop(p):
 def p_add_loop_jump(p):
   ''' add-loop-jump :'''
   next_quad_id = QuadrupleStack.next_quad_id()
-  
+  jumps_stack = JumpsStack.get_instance()
   jumps_stack.push_quad(Quadruple(None, None, None, JumpHere(next_quad_id)))
 
 # EMBEDDED ACTIONS
@@ -274,13 +266,13 @@ def p_loop_false(p):
     raise SemanticError("Result of expression is not of type 'bool'. Found '{}' instead.".format(var_type))
   jump_quad = Quadruple("GOTOF", var, None, PendingJump())
   quad_stack.push_quad(jump_quad)
-  
+  jumps_stack = JumpsStack.get_instance()
   jumps_stack.push_quad(jump_quad)
 
 # EMBEDDED ACTIONS
 def p_loop_end(p):
   ''' loop-end : '''
-  
+  jumps_stack = JumpsStack.get_instance()
   end = jumps_stack.pop_quad()
   returning = jumps_stack.pop_quad()
   quad = Quadruple("GOTO", None, None, returning.result().id)
@@ -484,7 +476,6 @@ def p_function_call_1(p):
   ''' function-call-1 : RPAREN pop_par go-sub
                       | function-call-params check-params RPAREN pop_par go-sub
   '''
-  symbol_table.get_scope().current_function = None
 
 def p_function_call_params(p):
   ''' function-call-params : expression-logical set-params function-call-params-1
@@ -501,7 +492,8 @@ def p_gen_size(p):
   func = symbol_table.get_scope().get_function(p[-3])
   if (func):
     symbol_table.get_scope().current_function = func
-    quad = Quadruple("ERA", None, None, func.name)
+    size = func.vars_count + func.temp_vars_count
+    quad = Quadruple("ERA", None, None, size)
     quad_stack.push_quad(quad)
     func.reset_param_counter()
   else:
@@ -537,12 +529,8 @@ def p_go_sub(p):
     quad_stack.push_quad(quad)
 
 def p_array_constant(p):
-  ''' array-constant :  ID LBRACKET fake_arr_wall expression-logical save_array_index_exp RBRACKET
+  ''' array-constant :  ID LBRACKET expression-logical RBRACKET
   '''
-
-def p_fake_arr_wall(p):
-  ''' fake_arr_wall :'''
-  exp_handler.push_parenthesis()
 
 def p_list_const(p):
   ''' list-const : LBRACKET list-const-a

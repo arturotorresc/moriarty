@@ -1,14 +1,21 @@
 import pickle
 
+<<<<<<< HEAD
 from memory import Memory, POINTER_RANGE, LOCAL_RANGE, MEM_SIZE
 from collections import deque
 
 special_functions = ['move', 'speak', 'rotate', 'shoot', 'jump', 'enemy?', 'reload_gun', 'gun_loaded?']
+=======
+from memory import Memory
+>>>>>>> 2531721f573d2de5669be48ad8e8a3cfd2aa31cf
 
 class VirtualMachine:
   def __init__(self, file_name):
     self.__ip = 0
+<<<<<<< HEAD
     self.__last_quad = deque()
+=======
+>>>>>>> 2531721f573d2de5669be48ad8e8a3cfd2aa31cf
     with open(file_name, 'rb') as input:
       data = pickle.load(input)
       self.__player_table = data.player_table
@@ -25,7 +32,10 @@ class VirtualMachine:
     next_quad = self.__quadruples[self.__ip]
     while next_quad[0] != 'END_MAIN':
       operator, left, right, result = next_quad
+<<<<<<< HEAD
       # print('OPERATOR====', operator, left, right, result)
+=======
+>>>>>>> 2531721f573d2de5669be48ad8e8a3cfd2aa31cf
 
       if operator in ['+', '-', '*', '/', '<=', '>=', '<', '>', '!=', '==', 'and', 'or']:
         left_val = memory.get_address_value(left)
@@ -40,8 +50,6 @@ class VirtualMachine:
         self.__ip += 1
       elif operator == '=':
         left_val = memory.get_address_value(left)
-        if result in POINTER_RANGE:
-          result = memory.get_address_value(result, True)
         memory.set_address_value(result, left_val)
         self.__ip += 1
       elif operator == 'not':
@@ -93,6 +101,7 @@ class VirtualMachine:
         memory.set_address_value(left, result_value)
         self.__ip += 1
       elif operator == 'ENDFUNC':
+<<<<<<< HEAD
         self.__ip = self.__last_quad.pop()
         memory.pop_locals()
       elif operator == 'GOTO_MAIN':
@@ -101,6 +110,15 @@ class VirtualMachine:
         print(operator)
         self.__ip += 1
       # TODO: Quitar este else
+=======
+        self.__ip = self.__last_quad
+        self.__last_quad = None
+        memory.exit_func_call()
+      elif operator == 'INIT_GAME':
+        # LLAMAR INIT GAME DE GAME_STATE
+        pass
+      # Quitar este else
+>>>>>>> 2531721f573d2de5669be48ad8e8a3cfd2aa31cf
       else:
         self.__ip += 1
         
