@@ -33,6 +33,11 @@ class ExpressionHandler:
     if (self.__operator_stack):
       return self.__operator_stack[-1]
   
+  def peek_operand(self):
+    if (self.__operand_stack):
+      return self.__operand_stack[-1]
+    return None
+  
   # Pushes a fake wall.
   def push_parenthesis(self):
     self.push_operator('(')

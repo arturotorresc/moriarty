@@ -1,21 +1,10 @@
 player jugadorUno;
 
-function uno(hola : int, bye : int) : void {
-    var i : int = (2 + 3) * (4 / 2) + (6 + 3 - 4);
+function uno(hola : int, bye : string) : void {
+    var i : int = hola;
+    var s : string = bye;
 }
 
 main() {
-    if (false) {
-        var i : int = 100 + 1;
-        uno(1, 4);
-    } else {
-        var j : int = 100 - 1;
-    }
-
-    var x : int = 0;
-    var y : int = 0;
-    loop(x < 5) {
-        x = x + 1;
-        y = 15 + 15;
-    }
+    uno(1, "hola");
 }

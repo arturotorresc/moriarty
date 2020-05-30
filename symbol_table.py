@@ -1,6 +1,8 @@
 from collections import deque
 from semantic_error import SemanticError
 from address_handler import AddressHandler, GLOBAL, LOCAL, TEMP, CONST
+from avail import Avail
+from check_global import Global
 
 # ========================== PRIVATE INTERFACE ======================
 
@@ -32,6 +34,9 @@ class VariableTable:
     self.__var_type = var_type
     self.__address = None
     self.__value = None
+    self.__is_array = False
+    self.__dimension_list = None
+    self.__size = 1
   
   def name(self):
     return self.__name
@@ -59,6 +64,27 @@ class VariableTable:
   @value.setter
   def value(self, value):
     self.__value = value
+
+  @property
+  def is_array(self):
+    return self.__is_array
+
+  @is_array.setter
+  def is_array(self, value):
+    self.__is_array = value
+  
+  @property
+  def dimension_list(self):
+    return self.__dimension_list
+
+  @dimension_list.setter
+  def dimension_list(self, value):
+    self.__dimension_list = value
+    self.__size = self.__dimension_list[0]
+  
+  @property
+  def size(self):
+    return self.__size
   
   def print(self):
     print("====== {} ======".format(self.__name))
@@ -70,10 +96,11 @@ class FunctionTable:
     self.__name = name
     self.__return_type = return_type
     self.__params = []
+    self.__param_type_counter = []
     self.__param_counter = 0
-    self.__vars_count = 0
+    self.__vars_count = {}
     self.__func_start = None
-    self.__temp_vars_count = 0
+    self.__temp_var_map = { 'int': 0, 'bool': 0, 'string': 0}
   
   @property
   def name(self):
@@ -91,9 +118,8 @@ class FunctionTable:
   def vars_count(self):
     return self.__vars_count
   
-  @vars_count.setter
-  def vars_count(self, count):
-    self.__vars_count = count
+  def sum_vars_count(self, var_type, size):
+    self.__vars_count[var_type] = size
   
   @property
   def func_start(self):
@@ -105,6 +131,7 @@ class FunctionTable:
   
   # Inserts the parameter type into the parameters array
   def insert_param(self, param_type):
+    self.__param_type_counter.append(self.__params.count(param_type))
     self.__params.append(param_type)
   
   # Gets the parameter at [__param_counter]
@@ -112,12 +139,25 @@ class FunctionTable:
     if self.__param_counter >= len(self.__params):
       raise SemanticError('Trying to access param ({}), but function only has ({}) params!'.format(self.__param_counter + 1, len(self.__params)))
 
-    param = (self.__params[self.__param_counter], self.__param_counter)
+    param = (self.__params[self.__param_counter], self.__param_counter, self.__param_type_counter[self.__param_counter])
     self.__param_counter += 1
     return param
   
   def verify_params(self):
     return self.__param_counter == len(self.__params)
+  
+  def params_type_count(self):
+    int_c = 0
+    bool_c = 0
+    string_c = 0
+    for param in self.__params:
+      if param == 'int':
+        int_c += 1
+      elif param == 'bool':
+        bool_c += 1
+      elif param == 'string':
+        string_c += 1
+    return (int_c, bool_c, string_c)
 
   def reset_param_counter(self):
     self.__param_counter = 0
@@ -132,6 +172,15 @@ class FunctionTable:
   @return_type.setter
   def return_type(self, value):
     self.__return_type = value
+
+  def temp_var_map(self, var_type):
+    return self.__temp_var_map[var_type]
+  
+  def get_temp_var_map(self):
+    return self.__temp_var_map
+  
+  def sum_temp_var_map(self, var_type):
+    self.__temp_var_map[var_type] += 1
   
   # Prints the function table for debugging purposes
   def print(self):
@@ -151,6 +200,7 @@ class Scope:
     self.__last_saved_var = None
     self.__last_saved_func = None
     self.__current_function = None
+    self.__last_accessed_id = None
   
   def parent(self):
     return self.__parent
@@ -177,6 +227,14 @@ class Scope:
   @current_function.setter
   def current_function(self, current_function):
     self.__current_function = current_function
+  
+  @property
+  def last_accessed_id(self):
+    return self.__last_accessed_id
+
+  @last_accessed_id.setter
+  def last_accessed_id(self, last_accessed_id):
+    self.__last_accessed_id = last_accessed_id
   
   # Gets a function in the current scope or any parent scope.
   def get_function(self, name):
@@ -235,8 +293,7 @@ class Scope:
     else:
       mem_type = LOCAL
     
-    # TODO: do array check and define size!
-    next_address = AddressHandler.get_instance().get_next_address(mem_type, var_table.var_type)
+    next_address = AddressHandler.get_instance().get_next_address(mem_type, var_table.var_type, var_table.size)
     var_table.address = next_address
   
   # Adds a player to the current scope.
@@ -269,6 +326,7 @@ class SymbolTable:
   
   # Pushes a new scope to the top of the stack
   def push_scope(self):
+    Global.get_instance().is_in_global = False
     parent_scope = self.get_scope()
     self.__scope.append(Scope(parent_scope))
 
@@ -279,7 +337,18 @@ class SymbolTable:
     
   # Returns and pops current scope from scope stack.
   def pop_scope(self):
+    if self.get_scope().parent().parent() is None:
+      Global.get_instance().is_in_global = True
+    func_table = self.get_scope().parent().get_last_saved_func()
+    used_vars = AddressHandler.get_instance().get_local_counts()
+    used_temps = AddressHandler.get_instance().get_temp_local_counts()
+    params_count = func_table.params_type_count()
+    func_table.sum_vars_count('int', used_vars[0] + params_count[0] + used_temps[0])
+    func_table.sum_vars_count('bool', used_vars[1] + params_count[1] + used_temps[1])
+    func_table.sum_vars_count('string', used_vars[2] + params_count[2] + used_temps[2])
     AddressHandler.get_instance().reset_locals()
+    AddressHandler.get_instance().reset_local_temps()
+    Avail.get_instance().reset_locals()
     return self.__scope.pop()
 
   # ================ PRIVATE METHODS =================
