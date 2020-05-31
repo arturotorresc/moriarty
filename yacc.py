@@ -12,6 +12,7 @@ from quadruple import QuadrupleStack
 from avail import Avail
 from constant_table import ConstantTable
 from address_handler import AddressHandler, POINTERS
+from helper import Helper
 
 exp_handler = ExpressionHandler.get_instance()
 symbol_table = SymbolTable.get_instance()
@@ -104,14 +105,24 @@ def p_save_var_type(p):
   symbol_table.get_scope().set_variable_address()
 
 def p_variable_decl_2(p):
-  ''' variable-decl-2 : EQUALS expression-logical assign_var_after_decl SEMICOLON
+  ''' variable-decl-2 : EQUALS in_assignment expression-logical assign_var_after_decl out_assignment SEMICOLON
                       | SEMICOLON '''
+
+def p_in_assignment(p):
+  ''' in_assignment :'''
+  Helper.get_instance().is_in_assignment = True
+
+def p_out_assignment(p):
+  ''' out_assignment :'''
+  Helper.get_instance().is_in_assignment = False
 
 # EMBEDDED ACTION
 def p_assign_var_after_decl(p):
   ''' assign_var_after_decl :'''
   var_table = symbol_table.get_scope().get_last_saved_var()
-  attempt_assignment_quadruple(var_table.name())
+  if (not var_table.is_array):
+    attempt_assignment_quadruple(var_table.name())
+  Helper.get_instance().is_in_assignment = True
 
 def p_function(p):
   ''' function : FUNCTION ID register-function-name LPAREN func-params-or-empty RPAREN DOTS func-type register-function-type block '''
@@ -242,7 +253,9 @@ def p_else_if_jump(p):
 
 def p_assignment(p):
   ''' assignment : ID save_access_id assignment-1'''
-  attempt_assignment_quadruple(p[1])
+  var = symbol_table.get_scope().get_var(p[1])
+  if not var.is_array:
+    attempt_assignment_quadruple(p[1])
 
 def p_save_access_id(p):
   ''' save_access_id :'''
@@ -252,7 +265,7 @@ def p_save_access_id(p):
 
 def p_assignment_1(p):
   ''' assignment-1 : LBRACKET push_par expression-logical save_array_index_exp RBRACKET EQUALS expression-logical SEMICOLON
-                   | EQUALS expression-logical SEMICOLON '''
+                   | EQUALS in_assignment expression-logical out_assignment SEMICOLON '''
 
 # EMBEDDED ACTION
 def p_save_array_index_exp(p):
@@ -421,7 +434,7 @@ def p_factor_num(p):
 
 def p_constant(p):
   ''' constant : BOOLEAN push_bool
-               | list-const
+               | verify_assignment list-const
                | string push_string
   '''
 
@@ -430,6 +443,12 @@ def p_numeric_constant(p):
                        | ID push_var
                        | array-constant
   '''
+
+# EMBEDDED ACTION
+def p_verify_assignment(p):
+  ''' verify_assignment :'''
+  if not Helper.get_instance().is_in_assignment:
+    raise SemanticError('Trying to use an array literal outside an array assignment or inside an indexed array.')
 
 # EMBEDDED ACTION
 def p_push_num(p):
@@ -559,13 +578,27 @@ def p_list_const_a(p):
   '''
 
 def p_list_const_1(p):
-  ''' list-const-1 : expression-logical list-const-2
+  ''' list-const-1 : expression-logical assign_array_literal list-const-2
   '''
 
 def p_list_const_2(p):
   ''' list-const-2 : COMMA list-const-1
                    | empty
   '''
+
+def p_assign_array_literal(p):
+  ''' assign_array_literal :'''
+  var = symbol_table.get_scope().get_last_saved_var()
+  if var.is_array:
+    if var.current_index < var.dimension_list[0]:
+      result, result_type = exp_handler.pop_operand()
+      quad = Quadruple("=", result, None, var.address + var.current_index)
+      quad_stack.push_quad(quad)
+      var.add_to_index()
+    else:
+      raise SemanticError('Dimension for array ({}) is incorrect'.format(var.name()))
+  else:
+    raise SemanticError('{} is an {}, you cannot assign an array literal'.format(var.name(), var.var_type))
 
 def p_string(p):
   ''' string : STR'''

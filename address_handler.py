@@ -1,4 +1,4 @@
-from check_global import Global
+from helper import Helper
 
 GLOBAL = 'global'
 LOCAL = 'local'
