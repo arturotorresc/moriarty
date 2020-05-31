@@ -1,5 +1,5 @@
 from address_handler import AddressHandler, TEMP, TEMP_LOCALS
-from check_global import Global
+from helper import Helper
 
 class Avail:
   # ================ ATTRIBUTES =====================
@@ -46,4 +46,4 @@ class Avail:
       self.__local_temp = 0
 
   def __is_global(self):
-    return Global.get_instance().is_in_global
+    return Helper.get_instance().is_in_global

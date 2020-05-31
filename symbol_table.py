@@ -2,7 +2,7 @@ from collections import deque
 from semantic_error import SemanticError
 from address_handler import AddressHandler, GLOBAL, LOCAL, TEMP, CONST
 from avail import Avail
-from check_global import Global
+from helper import Helper
 
 # ========================== PRIVATE INTERFACE ======================
 
@@ -37,6 +37,7 @@ class VariableTable:
     self.__is_array = False
     self.__dimension_list = None
     self.__size = 1
+    self.__current_index = 0
   
   def name(self):
     return self.__name
@@ -85,6 +86,13 @@ class VariableTable:
   @property
   def size(self):
     return self.__size
+
+  @property
+  def current_index(self):
+    return self.__current_index
+  
+  def add_to_index(self):
+    self.__current_index += 1
   
   def print(self):
     print("====== {} ======".format(self.__name))
@@ -326,7 +334,7 @@ class SymbolTable:
   
   # Pushes a new scope to the top of the stack
   def push_scope(self):
-    Global.get_instance().is_in_global = False
+    Helper.get_instance().is_in_global = False
     parent_scope = self.get_scope()
     self.__scope.append(Scope(parent_scope))
 
@@ -338,7 +346,7 @@ class SymbolTable:
   # Returns and pops current scope from scope stack.
   def pop_scope(self):
     if self.get_scope().parent().parent() is None:
-      Global.get_instance().is_in_global = True
+      Helper.get_instance().is_in_global = True
     func_table = self.get_scope().parent().get_last_saved_func()
     used_vars = AddressHandler.get_instance().get_local_counts()
     used_temps = AddressHandler.get_instance().get_temp_local_counts()
