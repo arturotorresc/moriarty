@@ -10,5 +10,5 @@ function fib(n : int) : int {
 }
 
 main() {
-    var a : int = fib(6);
+    var a : int = fib(15);
 }

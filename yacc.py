@@ -3,7 +3,7 @@ import ply.yacc as yacc
 
 from lex import tokens
 from symbol_table import SymbolTable
-from algorithms import attempt_create_quadruple, attempt_create_quadruple_unary, attempt_assignment_quadruple, attempt_pickle
+from algorithms import attempt_create_quadruple, attempt_create_quadruple_unary, attempt_assignment_quadruple, attempt_pickle, save_param_func_table, attempt_pass_parameter
 from expression_handler import ExpressionHandler
 from semantic_error import SemanticError
 from quadruple import Quadruple
@@ -13,6 +13,7 @@ from avail import Avail
 from constant_table import ConstantTable
 from address_handler import AddressHandler, POINTERS
 from helper import Helper
+from id_tracker import IdTracker
 
 exp_handler = ExpressionHandler.get_instance()
 symbol_table = SymbolTable.get_instance()
@@ -20,6 +21,7 @@ quad_stack = QuadrupleStack.get_instance()
 const_table = ConstantTable.get_instance()
 address_handler = AddressHandler.get_instance()
 jumps_stack = JumpsStack.get_instance()
+id_tracker = IdTracker.get_instance()
 
 def p_program(p):
   ''' program : init_game init goto_main function-and-vars main pickle'''
@@ -32,7 +34,7 @@ def p_goto_main(p):
   quad_stack.push_quad(quad)
 
 # EMBEDDED ACTION
-def p_init_main(p):
+def p_init_game(p):
   ''' init_game :'''
   quad = Quadruple('INIT_GAME', None, None, None)
   quad_stack.push_quad(quad)
@@ -74,6 +76,7 @@ def p_function_and_vars(p):
 def p_main(p):
   ''' main : MAIN LPAREN RPAREN set_main_jump block '''
 
+# EMBEDDED ACTION
 def p_set_main_jump(p):
   ''' set_main_jump :'''
   pending_jump_quad = jumps_stack.pop_quad()
@@ -107,6 +110,7 @@ def p_save_var_type(p):
 def p_variable_decl_2(p):
   ''' variable-decl-2 : EQUALS in_assignment expression-logical assign_var_after_decl out_assignment SEMICOLON
                       | SEMICOLON '''
+  Helper.get_instance().assignment_done = False
 
 def p_in_assignment(p):
   ''' in_assignment :'''
@@ -158,15 +162,22 @@ def p_func_params(p):
 
 def p_func_params_1(p):
   ''' func-params-1 : DOTS type save_param_type func-params-2
-                    | LBRACKET RBRACKET DOTS type func-params-2 '''
+                    | LBRACKET INTEGER RBRACKET DOTS type save_arr_param_type func-params-2 '''
+
+# EMBEDDED ACTION
+def p_save_arr_param_type(p):
+  ''' save_arr_param_type :'''
+  var_t = symbol_table.get_scope().get_last_saved_var()
+  arr_size = p[-4]
+  if arr_size <= 0:
+    raise SemanticError("INVALID ARRAY SIZE: Can't set an array size less than 1.")
+  var_t.dimension_list = [arr_size, None]
+  save_param_func_table(param_type=p[-1], is_array=True, size=arr_size)
 
 # EMBEDDED ACTION
 def p_save_param_type(p):
   ''' save_param_type :'''
-  param_type = p[-1]
-  symbol_table.get_scope().get_last_saved_var().var_type = param_type
-  symbol_table.get_scope().parent().get_last_saved_func().insert_param(param_type)
-  symbol_table.get_scope().set_variable_address()
+  save_param_func_table(param_type=p[-1], is_array=False)
 
 def p_func_params_2(p):
   ''' func-params-2 : COMMA func-params
@@ -254,9 +265,11 @@ def p_else_if_jump(p):
 def p_assignment(p):
   ''' assignment : ID save_access_id assignment-1'''
   var = symbol_table.get_scope().get_var(p[1])
-  if not var.is_array:
+  if not Helper.get_instance().assignment_done:
     attempt_assignment_quadruple(p[1])
+  Helper.get_instance().assignment_done = False
 
+# EMBEDDED ACTION
 def p_save_access_id(p):
   ''' save_access_id :'''
   var = symbol_table.get_scope().get_var(p[-1])
@@ -302,7 +315,7 @@ def p_loop_false(p):
 
 # EMBEDDED ACTIONS
 def p_loop_end(p):
-  ''' loop-end : '''
+  ''' loop-end :'''
   end = jumps_stack.pop_quad()
   returning = jumps_stack.pop_quad()
   quad = Quadruple("GOTO", None, None, returning.result().id)
@@ -316,8 +329,9 @@ def p_return_1(p):
   ''' return-1 : SEMICOLON
                | expression-logical save_return_value SEMICOLON '''
 
+# EMBEDDED ACTION
 def p_save_return_value(p):
-  ''' save_return_value : '''
+  ''' save_return_value :'''
   function = symbol_table.get_scope().parent().get_last_saved_func().name
   var_table = symbol_table.get_scope().get_var(function)
   result, result_type = exp_handler.pop_operand()
@@ -329,7 +343,12 @@ def p_save_return_value(p):
     raise SemanticError('Return type for function "{}" expected "{}" and got "{}"'.format(function, var_table.var_type, result_type))
 
 def p_expression_logical(p):
-  ''' expression-logical : expression expression-logical-1 save-logical-quad'''
+  ''' expression-logical : remove_last_used_id expression expression-logical-1 save-logical-quad'''
+
+# EMBEDDED ACTION
+def p_remove_last_used_id(p):
+  ''' remove_last_used_id :'''
+  id_tracker.unset_last_used_id()
 
 # EMBEDDED ACTION
 def p_save_logical_quad(p):
@@ -409,13 +428,16 @@ def p_not_options(p):
 
 # EMBEDDED ACTION
 def p_flip(p):
-  ''' flip : '''
+  ''' flip :'''
   sign = 'ABS' if p[-2] == '+' else 'NEGATIVE'
-  number = exp_handler.pop_operand()[0]
-  result = Avail.get_instance().next('int')
-  quad = Quadruple(sign, number, None, result)
-  quad_stack.push_quad(quad)
-  exp_handler.push_operand(result, 'int')
+  number = exp_handler.pop_operand()
+  if number[1] == 'int':
+    result = Avail.get_instance().next('int')
+    quad = Quadruple(sign, number[0], None, result)
+    quad_stack.push_quad(quad)
+    exp_handler.push_operand(result, 'int')
+  else:
+    raise SemanticError("Can't use a change of sign for {} type, just for int type".format(number[1]))
 
 # EMBEDDED ACTION
 def p_push_par(p):
@@ -453,12 +475,15 @@ def p_verify_assignment(p):
 # EMBEDDED ACTION
 def p_push_num(p):
   ''' push_num :'''
+  num = int(p[-1])
   const_table.insert_constant(p[-1], 'int')
 
 # EMBEDDED ACTION
 def p_push_string(p):
   ''' push_string :'''
-  const_table.insert_constant(p[-1], 'string')
+  str_value = list(filter(lambda ch: ch not in "\"", p[-1]))
+  str_value = "".join(str_value)
+  const_table.insert_constant(str_value, 'string')
 
 # EMBEDDED ACTION
 def p_push_bool(p):
@@ -471,6 +496,7 @@ def p_push_var(p):
   tvar = symbol_table.get_scope().get_var(p[-1])
   if (tvar):
     exp_handler.push_operand(tvar.address, tvar.var_type)
+    id_tracker.last_used_id = tvar.name()
   else:
     raise SemanticError('No variable with id: "{}"'.format(p[-1]))
 
@@ -535,23 +561,19 @@ def p_gen_size(p):
   else:
     raise SemanticError('No function with id: "{}"'.format(p[-2]))
 
+# EMBEDDED ACTION
 def p_set_params(p):
   ''' set-params :'''
-  c_function = symbol_table.get_scope().current_function
-  c_param = c_function.get_next_param()
-  arg, arg_type = exp_handler.pop_operand()
-  if (c_param[0] == arg_type):
-    quad = Quadruple("PARAMETER", arg, c_param[2], arg_type)
-    quad_stack.push_quad(quad)
-  else:
-    raise SemanticError('Incorrect type in parameters for function with id: "{}"'.format(c_function.name))
+  attempt_pass_parameter()
 
+# EMBEDDED ACTION
 def p_check_params(p):
   ''' check-params :'''
   c_function = symbol_table.get_scope().current_function
   if (not c_function.verify_params()):
     raise SemanticError('Incorrect number of parameters for function with id: "{}"'.format(c_function.name))
 
+# EMBEDDED ACTION
 def p_go_sub(p):
   ''' go-sub :'''
   c_function = symbol_table.get_scope().current_function
@@ -571,6 +593,7 @@ def p_array_constant(p):
 def p_list_const(p):
   ''' list-const : LBRACKET list-const-a
   '''
+  Helper.get_instance().assignment_done = True
 
 def p_list_const_a(p):
   ''' list-const-a : RBRACKET

@@ -7,6 +7,7 @@ class Quadruple:
     self.__left_operand = left_operand
     self.__right_operand = right_operand
     self.__result = result
+    # self.__id = None
   
   @property
   def id(self):
@@ -32,6 +33,13 @@ class Quadruple:
 
   def result(self):
     return self.__result
+  
+  def print(self):
+    # print("===== QUAD {}: ======".format(self.id))
+    print("operator: {}".format(self.get_operator()))
+    print("left_operand: {}".format(self.left_operand()))
+    print("right_operand: {}".format(self.right_operand()))
+    print("result: {}".format(self.result()))
 
 
 class QuadrupleStack:

@@ -1,0 +1,10 @@
+player jugadorUno;
+
+function error(arr[2] : int) : void {
+  arr[0] = 2;
+}
+
+main() {
+  var i : int = 4;
+  error(i);
+}

@@ -1,0 +1,11 @@
+player jugadorUno;
+
+# El programa marcará error
+
+function prueba(a : int) : void {
+  var i : int = 1 + 32;
+}
+
+main() {
+  var a : int = prueba(3);
+}

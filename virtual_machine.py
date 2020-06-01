@@ -26,7 +26,8 @@ class VirtualMachine:
     next_quad = self.__quadruples[self.__ip]
     while next_quad[0] != 'END_MAIN':
       operator, left, right, result = next_quad
-      print('OPERATOR====', operator, left, right, result)
+      if operator == "GOSUB":
+        memory.print_addresses()
 
       if operator in ['+', '-', '*', '/', '<=', '>=', '<', '>', '!=', '==', 'and', 'or']:
         left_val = memory.get_address_value(left)
@@ -42,7 +43,7 @@ class VirtualMachine:
       elif operator == '=':
         left_val = memory.get_address_value(left)
         if result in POINTER_RANGE:
-          result = memory.get_address_value(result, True)
+          result = memory.get_address_value(result, pointer_value=True)
         memory.set_address_value(result, left_val)
         self.__ip += 1
       elif operator == 'GOTO':
@@ -65,20 +66,25 @@ class VirtualMachine:
         memory.set_address_value(result, access_addr, True)
         self.__ip += 1
       elif operator == 'ERA':
-        memory.push_locals()
+        memory.push_locals(self.__dir_func[result])
         memory.use_past_local()
         self.__ip += 1
       elif operator == 'PARAMETER':
         value = memory.get_address_value(left)
-        initial_address = None
-        if result == 'int':
-          initial_address = LOCAL_RANGE[0]
-        elif result == 'bool':
-          initial_address = LOCAL_RANGE[0] + MEM_SIZE
-        elif result == 'string':
-          initial_address = LOCAL_RANGE[0] + MEM_SIZE * 2
+        initial_address = self.__get_initial_address(var_type=result)
         memory.unuse_past_local()
         memory.set_address_value(initial_address + right, value)
+        memory.use_past_local()
+        self.__ip += 1
+      elif operator == "ARRAY_PARAMETER":
+        param_num, array_size = right
+        initial_address = self.__get_initial_address(var_type=result) + param_num
+        arr_copy = []
+        for elem_idx in range(0, array_size):
+          arr_copy.append(memory.get_address_value(left + elem_idx))
+        memory.unuse_past_local()
+        for elem_idx in range(0, array_size):
+          memory.set_address_value(initial_address + elem_idx, arr_copy[elem_idx])
         memory.use_past_local()
         self.__ip += 1
       elif operator == 'GOSUB':
@@ -103,8 +109,8 @@ class VirtualMachine:
         self.special_functions(operator, left)
         self.__ip += 1
       elif operator == 'speak':
-        value = memory.get_address_value(left)
-        print(value)
+        value = memory.get_address_value(result)
+        GameState.get_instance().speak(left, value)
         self.__ip += 1
       # Quitar este else
       else:
@@ -112,6 +118,7 @@ class VirtualMachine:
         
       next_quad = self.__quadruples[self.__ip]
     print('PROGRAM OVER')
+    GameState.get_instance().write_game_state()
 
   def operations(self, operator, left, right):
     if operator == '+':
@@ -121,7 +128,7 @@ class VirtualMachine:
     if operator == '*':
       return left * right
     if operator == '/':
-      return left / right
+      return int(round(left / right))
     if operator == '<=':
       return left <= right
     if operator == '>=':
@@ -147,7 +154,7 @@ class VirtualMachine:
     if operator == 'not':
       return not left
   
-  def special_functions(self, function, player):
+  def special_functions(self, operator, player):
     game_state = GameState.get_instance()
     
     if operator == 'move':
@@ -164,3 +171,14 @@ class VirtualMachine:
       game_state.enemy_in_front(player)
     elif operator == 'jump':
       game_state.jump(player)
+  
+  # ==================== PRIVATE INTERFACE =======================
+  def __get_initial_address(self, var_type):
+    if var_type == 'int':
+      return LOCAL_RANGE[0]
+    elif var_type == 'bool':
+      return LOCAL_RANGE[0] + MEM_SIZE
+    elif var_type == 'string':
+      return LOCAL_RANGE[0] + MEM_SIZE * 2
+    else:
+      raise Error("UNKNOWN TYPE: Tried to get initial address of {} but it is not a type".format(var_type))

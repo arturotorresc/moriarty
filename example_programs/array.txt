@@ -1,10 +1,18 @@
 player jugadorUno;
 
+function array_params(arr[2] : int) : void {
+  arr[0] = 30;
+  var i : int = 3 + 3 + 3 + 3;
+}
+
+function several_arr(otro: int, my_ints[2] : int, my_bools[4] : bool, n : int) : void {
+  my_ints[1] = 100;
+  my_bools[3] = false;
+}
+
 main () {
-  var i[3] : int;
-  i[2] = 3;
-  i[1] = 13;
-  var cdsc : int = 23 + 34 + 12 * 32;
-  var dasd : string = "yeeeheeehee";
-  var asdassdasds : bool = true;
+  var my_arr[2] : int = [10, 10];
+  # array_params(my_arr);
+  var my_bools[4] : bool = [true, false, true, false];
+  several_arr(999, my_arr, my_bools, 3+12);
 }

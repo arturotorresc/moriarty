@@ -23,7 +23,7 @@ class MemoryRegion:
         memory_region[address] = value
         self.__available_spaces[address_type] -= 1
         if self.__available_spaces[address_type] <= 0:
-          raise Exception('Stack overflow, no more memory')
+          raise Exception('OUT OF MEMORY: No more available memory for {}'.format(address_type))
     
     def get_address_type(self, address_type):
         if address_type == 'int':
@@ -67,7 +67,7 @@ class Memory:
           return 'bool'
       if initial_address + (MEM_SIZE * 2) <= address <= initial_address + (MEM_SIZE * 3 - 1):
           return 'string'
-      raise Exception("Invalid memory address, out of bounds")
+      raise Exception("INVALID MEMORY ADDRESS: {} is not a valid address.".format(address))
 
   def get_memory_region(self, address, set_pointer = False):
       if address in GLOBAL_RANGE:
@@ -88,20 +88,26 @@ class Memory:
           region, initial_address = self.get_memory_region(address)
           return (region, initial_address)
       else:
-          raise Exception("Invalid memory address, out of bounds")
+          raise Exception("INVALID MEMORY ADDRESS: address '{}' does not belong to any memory region".format(address))
 
   def set_address_value(self, address, value, set_pointer = False):
       region, initial_address = self.get_memory_region(address, set_pointer)
       address_type = self.get_address_type(address, initial_address)
       region.set_address_value(address, value, address_type)
 
-  def push_locals(self):
+  def push_locals(self, dir_func_map):
       self.__local.append(MemoryRegion())
       self.__temp_local.append(MemoryRegion())
+      self.__assign_mem(dir_func_map)
+      self.__check_locals_out_of_memory()
+      self.__function_stack.append(dir_func_map)
   
   def pop_locals(self):
-      self.__local.pop()
-      self.__temp_local.pop()
+    self.__local.pop()
+    self.__temp_local.pop()
+    dir_func_map = self.__function_stack[-1]
+    self.__unassign_mem(dir_func_map)
+    self.__function_stack.pop()
 
   def use_past_local(self):
       if (len(self.__local) > 1):
@@ -133,10 +139,38 @@ class Memory:
     else:
       Memory.__instance = self
       self.__global = MemoryRegion()
+      self.__function_stack = []
       self.__local = []
+      self.__available_local_vars = { 'int': MEM_SIZE, 'bool': MEM_SIZE, 'string': MEM_SIZE }
       self.__temp = MemoryRegion()
       self.__temp_local = []
+      self.__available_temp_local_vars = { 'int': MEM_SIZE, 'bool': MEM_SIZE, 'string': MEM_SIZE }
       self.__constant = MemoryRegion()
       self.__pointers = MemoryRegion()
-      self.__locals_count = 0
+      # Represents the current memory being used. Initialized to -1 to start
+      # with the most recent created local memory region
       self.__current_memory_local = -1
+
+  def __check_locals_out_of_memory(self):
+    def helper(mem_dict, mem_type):
+      for var_type, mem_count in mem_dict.items():
+        if mem_dict[var_type] < 0:
+          raise Exception('OUT OF MEMORY: No more remaining space for type "{}" {} vars'.format(var_type, mem_type))
+
+    helper(self.__available_local_vars, 'local')
+    helper(self.__available_temp_local_vars, 'temporal')
+
+  def __assign_mem(self, func_dict):
+    self.__manage_local_mem(func_dict, action="assign")
+  
+  def __unassign_mem(self, func_dict):
+    self.__manage_local_mem(func_dict, action="unassign")
+
+  def __manage_local_mem(self, func_dict, action):
+    multiplier = -1 if action == "assign" else 1
+    self.__available_local_vars['int'] += func_dict['vars_count']['int'] * multiplier
+    self.__available_local_vars['bool'] += func_dict['vars_count']['bool'] * multiplier
+    self.__available_local_vars['string'] += func_dict['vars_count']['string'] * multiplier
+    self.__available_temp_local_vars['int'] += func_dict['temp_var_map']['int'] * multiplier
+    self.__available_temp_local_vars['bool'] += func_dict['temp_var_map']['bool'] * multiplier
+    self.__available_temp_local_vars['string'] += func_dict['temp_var_map']['string'] * multiplier

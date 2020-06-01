@@ -5,21 +5,18 @@ function hola() : bool {
 }
 
 main () {
-  var first : bool = true;
-  if (true and false or true and false) {
-    var a : int = 3 * 2;
+  var my_bool : bool = true and true;
+
+  var my_int : int = 0;
+  if (false or my_bool) {
+    my_int = 5;
   }
 
-  if ((hola() and true) or (false or (true and true))) {
-    var i : int = a + a;
-    var b : int = i + a;
-  }
-  var j : int = 1;
-  var myVar : int = 2;
-  loop (true and true or (not false and true)) {
-    b = i + i;
-    b = a + j;
-    a = b + b;
+  if (hola() and true and false and true) {
+    my_int = my_int + 1;
   }
 
+  loop (my_int < 30 or false) {
+    my_int = my_int + 1;
+  }
 }
