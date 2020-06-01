@@ -3,7 +3,7 @@ import ply.yacc as yacc
 
 from lex import tokens
 from symbol_table import SymbolTable
-from algorithms import attempt_create_quadruple, attempt_create_quadruple_unary, attempt_assignment_quadruple, attempt_pickle
+from algorithms import attempt_create_quadruple, attempt_create_quadruple_unary, attempt_assignment_quadruple, attempt_pickle, save_param_func_table, attempt_pass_parameter
 from expression_handler import ExpressionHandler
 from semantic_error import SemanticError
 from quadruple import Quadruple
@@ -13,6 +13,7 @@ from avail import Avail
 from constant_table import ConstantTable
 from address_handler import AddressHandler, POINTERS
 from helper import Helper
+from id_tracker import IdTracker
 
 exp_handler = ExpressionHandler.get_instance()
 symbol_table = SymbolTable.get_instance()
@@ -20,6 +21,7 @@ quad_stack = QuadrupleStack.get_instance()
 const_table = ConstantTable.get_instance()
 address_handler = AddressHandler.get_instance()
 jumps_stack = JumpsStack.get_instance()
+id_tracker = IdTracker.get_instance()
 
 def p_program(p):
   ''' program : init_game init goto_main function-and-vars main pickle'''
@@ -160,15 +162,22 @@ def p_func_params(p):
 
 def p_func_params_1(p):
   ''' func-params-1 : DOTS type save_param_type func-params-2
-                    | LBRACKET RBRACKET DOTS type func-params-2 '''
+                    | LBRACKET INTEGER RBRACKET DOTS type save_arr_param_type func-params-2 '''
+
+# EMBEDDED ACTION
+def p_save_arr_param_type(p):
+  ''' save_arr_param_type :'''
+  var_t = symbol_table.get_scope().get_last_saved_var()
+  arr_size = p[-4]
+  if arr_size <= 0:
+    raise SemanticError("INVALID ARRAY SIZE: Can't set an array size less than 1.")
+  var_t.dimension_list = [arr_size, None]
+  save_param_func_table(param_type=p[-1], is_array=True, size=arr_size)
 
 # EMBEDDED ACTION
 def p_save_param_type(p):
   ''' save_param_type :'''
-  param_type = p[-1]
-  symbol_table.get_scope().get_last_saved_var().var_type = param_type
-  symbol_table.get_scope().parent().get_last_saved_func().insert_param(param_type)
-  symbol_table.get_scope().set_variable_address()
+  save_param_func_table(param_type=p[-1], is_array=False)
 
 def p_func_params_2(p):
   ''' func-params-2 : COMMA func-params
@@ -334,7 +343,12 @@ def p_save_return_value(p):
     raise SemanticError('Return type for function "{}" expected "{}" and got "{}"'.format(function, var_table.var_type, result_type))
 
 def p_expression_logical(p):
-  ''' expression-logical : expression expression-logical-1 save-logical-quad'''
+  ''' expression-logical : remove_last_used_id expression expression-logical-1 save-logical-quad'''
+
+# EMBEDDED ACTION
+def p_remove_last_used_id(p):
+  ''' remove_last_used_id :'''
+  id_tracker.unset_last_used_id()
 
 # EMBEDDED ACTION
 def p_save_logical_quad(p):
@@ -461,12 +475,15 @@ def p_verify_assignment(p):
 # EMBEDDED ACTION
 def p_push_num(p):
   ''' push_num :'''
+  num = int(p[-1])
   const_table.insert_constant(p[-1], 'int')
 
 # EMBEDDED ACTION
 def p_push_string(p):
   ''' push_string :'''
-  const_table.insert_constant(p[-1], 'string')
+  str_value = list(filter(lambda ch: ch not in "\"", p[-1]))
+  str_value = "".join(str_value)
+  const_table.insert_constant(str_value, 'string')
 
 # EMBEDDED ACTION
 def p_push_bool(p):
@@ -479,6 +496,7 @@ def p_push_var(p):
   tvar = symbol_table.get_scope().get_var(p[-1])
   if (tvar):
     exp_handler.push_operand(tvar.address, tvar.var_type)
+    id_tracker.last_used_id = tvar.name()
   else:
     raise SemanticError('No variable with id: "{}"'.format(p[-1]))
 
@@ -546,14 +564,7 @@ def p_gen_size(p):
 # EMBEDDED ACTION
 def p_set_params(p):
   ''' set-params :'''
-  c_function = symbol_table.get_scope().current_function
-  c_param = c_function.get_next_param()
-  arg, arg_type = exp_handler.pop_operand()
-  if (c_param[0] == arg_type):
-    quad = Quadruple("PARAMETER", arg, c_param[2], arg_type)
-    quad_stack.push_quad(quad)
-  else:
-    raise SemanticError('Incorrect type in parameters for function with id: "{}"'.format(c_function.name))
+  attempt_pass_parameter()
 
 # EMBEDDED ACTION
 def p_check_params(p):

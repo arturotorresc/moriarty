@@ -1,0 +1,10 @@
+player jugadorUno;
+
+function infinite() : void {
+  var i : int = 3 + 3;
+  infinite();
+}
+
+main() {
+  infinite();
+}

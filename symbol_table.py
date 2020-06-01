@@ -98,29 +98,28 @@ class VariableTable:
     print("====== {} ======".format(self.__name))
     print("var_type: {}".format(self.__var_type))
     print("address: {}".format(self.__address))
+    print("is_array: {}".format(self.__is_array))
+    print("size: {}".format(self.__size))
+    print("dimension_list: {}".format(self.__dimension_list))
 
 class FunctionTable:
   def __init__(self, name, return_type):
     self.__name = name
     self.__return_type = return_type
     self.__params = []
+    # Map to store the next index to assign to [param_type_counter]
+    # depending on the type.
+    self.__next_param_by_type = { 'int': 0, 'bool': 0, 'string': 0 }
+    # Stores the offset from the initial address at which each param starts.
     self.__param_type_counter = []
     self.__param_counter = 0
-    self.__vars_count = {}
+    self.__vars_count = { 'int': 0, 'bool': 0, 'string': 0 }
     self.__func_start = None
-    self.__temp_var_map = { 'int': 0, 'bool': 0, 'string': 0}
+    self.__temp_vars_count = { 'int': 0, 'bool': 0, 'string': 0 }
   
   @property
   def name(self):
     return self.__name
-
-  @property
-  def temp_vars_count(self):
-    return self.__temp_vars_count
-  
-  @temp_vars_count.setter
-  def temp_vars_count(self, count):
-    self.__temp_vars_count = count
   
   @property
   def vars_count(self):
@@ -138,8 +137,10 @@ class FunctionTable:
     self.__func_start = quad_id
   
   # Inserts the parameter type into the parameters array
-  def insert_param(self, param_type):
-    self.__param_type_counter.append(self.__params.count(param_type))
+  def insert_param(self, param_type, size):
+    param_counter = self.__next_param_by_type[param_type]
+    self.__next_param_by_type[param_type] += size
+    self.__param_type_counter.append(param_counter)
     self.__params.append(param_type)
   
   # Gets the parameter at [__param_counter]
@@ -155,16 +156,9 @@ class FunctionTable:
     return self.__param_counter == len(self.__params)
   
   def params_type_count(self):
-    int_c = 0
-    bool_c = 0
-    string_c = 0
-    for param in self.__params:
-      if param == 'int':
-        int_c += 1
-      elif param == 'bool':
-        bool_c += 1
-      elif param == 'string':
-        string_c += 1
+    int_c = self.__next_param_by_type['int']
+    bool_c = self.__next_param_by_type['bool']
+    string_c = self.__next_param_by_type['string']
     return (int_c, bool_c, string_c)
 
   def reset_param_counter(self):
@@ -180,15 +174,12 @@ class FunctionTable:
   @return_type.setter
   def return_type(self, value):
     self.__return_type = value
-
-  def temp_var_map(self, var_type):
-    return self.__temp_var_map[var_type]
   
   def get_temp_var_map(self):
-    return self.__temp_var_map
+    return self.__temp_vars_count
   
-  def sum_temp_var_map(self, var_type):
-    self.__temp_var_map[var_type] += 1
+  def sum_temp_var_map(self, var_type, size):
+    self.__temp_vars_count[var_type] = size
   
   # Prints the function table for debugging purposes
   def print(self):
@@ -351,9 +342,12 @@ class SymbolTable:
     used_vars = AddressHandler.get_instance().get_local_counts()
     used_temps = AddressHandler.get_instance().get_temp_local_counts()
     params_count = func_table.params_type_count()
-    func_table.sum_vars_count('int', used_vars[0] + params_count[0] + used_temps[0])
-    func_table.sum_vars_count('bool', used_vars[1] + params_count[1] + used_temps[1])
-    func_table.sum_vars_count('string', used_vars[2] + params_count[2] + used_temps[2])
+    func_table.sum_vars_count('int', used_vars[0])
+    func_table.sum_temp_var_map('int', used_temps[0])
+    func_table.sum_vars_count('bool', used_vars[1])
+    func_table.sum_temp_var_map('bool', used_temps[1])
+    func_table.sum_vars_count('string', used_vars[2])
+    func_table.sum_temp_var_map('string', used_temps[2])
     AddressHandler.get_instance().reset_locals()
     AddressHandler.get_instance().reset_local_temps()
     Avail.get_instance().reset_locals()

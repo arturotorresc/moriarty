@@ -1,0 +1,7 @@
+player jugadorUno;
+
+main() {
+  var a : string = "hola";
+  var b : string = "bye";
+  var c : string = a - b;
+}
