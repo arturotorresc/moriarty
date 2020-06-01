@@ -108,6 +108,7 @@ def p_save_var_type(p):
 def p_variable_decl_2(p):
   ''' variable-decl-2 : EQUALS in_assignment expression-logical assign_var_after_decl out_assignment SEMICOLON
                       | SEMICOLON '''
+  Helper.get_instance().assignment_done = False
 
 def p_in_assignment(p):
   ''' in_assignment :'''
@@ -255,8 +256,9 @@ def p_else_if_jump(p):
 def p_assignment(p):
   ''' assignment : ID save_access_id assignment-1'''
   var = symbol_table.get_scope().get_var(p[1])
-  if Helper.get_instance().is_in_assignment:
+  if not Helper.get_instance().assignment_done:
     attempt_assignment_quadruple(p[1])
+  Helper.get_instance().assignment_done = False
 
 # EMBEDDED ACTION
 def p_save_access_id(p):
@@ -266,7 +268,7 @@ def p_save_access_id(p):
     symbol_table.get_scope().last_accessed_id = p[-1]
 
 def p_assignment_1(p):
-  ''' assignment-1 : LBRACKET push_par expression-logical save_array_index_exp RBRACKET EQUALS expression-logical in_assignment SEMICOLON
+  ''' assignment-1 : LBRACKET push_par expression-logical save_array_index_exp RBRACKET EQUALS expression-logical SEMICOLON
                    | EQUALS in_assignment expression-logical out_assignment SEMICOLON '''
 
 # EMBEDDED ACTION
@@ -580,6 +582,7 @@ def p_array_constant(p):
 def p_list_const(p):
   ''' list-const : LBRACKET list-const-a
   '''
+  Helper.get_instance().assignment_done = True
 
 def p_list_const_a(p):
   ''' list-const-a : RBRACKET

@@ -27,6 +27,14 @@ class Helper:
   def is_in_assignment(self, value):
     self.__is_in_assignment = value
 
+  @property
+  def assignment_done(self):
+    return self.__assignment_done
+
+  @assignment_done.setter
+  def assignment_done(self, value):
+    self.__assignment_done = value
+
   # ================ PRIVATE INTERFACE =====================
   def __init__(self):
     if Helper.__instance is not None:
@@ -35,3 +43,4 @@ class Helper:
       Helper.__instance = self
       self.__is_in_global = True
       self.__is_in_assignment = False
+      self.__assignment_done = False
