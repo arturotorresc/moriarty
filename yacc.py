@@ -24,7 +24,7 @@ jumps_stack = JumpsStack.get_instance()
 id_tracker = IdTracker.get_instance()
 
 def p_program(p):
-  ''' program : init_game init goto_main function-and-vars main pickle'''
+  ''' program : init_game init vars goto_main functions main pickle'''
 
 # EMBEDDED ACTION
 def p_goto_main(p):
@@ -40,13 +40,17 @@ def p_init_game(p):
   quad_stack.push_quad(quad)
 
 # DEBUG ACTION
-# def p_debug_stuff(p):
-#   ''' debug :'''
-#   while not quad_stack.empty():
-#     quad = quad_stack.peek_quad()
-#     quad_stack.pop_quad()
-#     print("====== QUADRUPLE {} =====".format(quad.id))
-#     print("( op: {} , l_opnd: {}, r_opnd: {}, res: {} )\n".format(quad.get_operator(), quad.left_operand(), quad.right_operand(), quad.result()))
+def p_debug_stuff(p):
+  ''' debug :'''
+  qs = []
+  while not quad_stack.empty():
+    qs.append(quad_stack.pop_quad())
+  i = len(qs) - 1
+  while i >= 0:
+    quad = qs[i]
+    print("====== QUADRUPLE {} =====".format(quad.id))
+    print("( op: {} , l_opnd: {}, r_opnd: {}, res: {} )\n".format(quad.get_operator(), quad.left_operand(), quad.right_operand(), quad.result()))
+    i -= 1
 
 def p_pickle(p):
   ''' pickle :'''
@@ -68,10 +72,13 @@ def p_init_1(p):
   ''' init-1 : init
              | empty '''
 
-def p_function_and_vars(p):
-  ''' function-and-vars : function function-and-vars
-                        | variable-decl function-and-vars
-                        | empty '''
+def p_functions(p):
+  ''' functions : function functions
+                | empty'''
+
+def p_vars(p):
+  ''' vars : variable-decl vars
+           | empty'''
 
 def p_main(p):
   ''' main : MAIN LPAREN RPAREN set_main_jump block '''
@@ -234,7 +241,7 @@ def p_push_if_jump(p):
   result = exp_handler.pop_operand()
   var, var_type = result
   if (var_type != 'bool'):
-    raise SemanticError("Result of expression is not of type 'bool'. Found '{}' instead.".format(var_type))
+    raise SemanticError("Result of the expression is not of type 'bool'. Found '{}' instead.".format(var_type))
   jump_quad = Quadruple("GOTOF", var, None, PendingJump())
   quad_stack.push_quad(jump_quad)
   jumps_stack.push_quad(jump_quad)
@@ -275,6 +282,8 @@ def p_save_access_id(p):
   var = symbol_table.get_scope().get_var(p[-1])
   if var.is_array:
     symbol_table.get_scope().last_accessed_id = p[-1]
+  else:
+    symbol_table.get_scope().last_accessed_id = None
 
 def p_assignment_1(p):
   ''' assignment-1 : LBRACKET push_par expression-logical save_array_index_exp RBRACKET EQUALS expression-logical SEMICOLON
@@ -284,14 +293,17 @@ def p_assignment_1(p):
 def p_save_array_index_exp(p):
   ''' save_array_index_exp :'''
   last_accessed_id = symbol_table.get_scope().last_accessed_id
-  var_table = symbol_table.get_scope().get_var(last_accessed_id)
-  quad = Quadruple('VERIFY_DIM', exp_handler.peek_operand()[0], None, var_table.size - 1)
-  quad_stack.push_quad(quad)
-  next_address = address_handler.get_next_address(POINTERS, var_table.var_type, 1)
-  quad = Quadruple('ADDRESS_SUM', var_table.address, exp_handler.pop_operand()[0], next_address)
-  quad_stack.push_quad(quad)
-  exp_handler.push_operand(next_address, var_table.var_type)
-  exp_handler.pop_parenthesis()
+  if last_accessed_id:
+    var_table = symbol_table.get_scope().get_var(last_accessed_id)
+    quad = Quadruple('VERIFY_DIM', exp_handler.peek_operand()[0], None, var_table.size - 1)
+    quad_stack.push_quad(quad)
+    next_address = address_handler.get_next_address(POINTERS, var_table.var_type, 1)
+    quad = Quadruple('ADDRESS_SUM', var_table.address, exp_handler.pop_operand()[0], next_address)
+    quad_stack.push_quad(quad)
+    exp_handler.push_operand(next_address, var_table.var_type)
+    exp_handler.pop_parenthesis()
+  else:
+    raise SemanticError("The variable trying to access is not an array.")
 
 def p_loop(p):
   ''' loop : LOOP add-loop-jump LPAREN expression-logical RPAREN loop-false block loop-end '''
@@ -308,7 +320,7 @@ def p_loop_false(p):
   exp_handler = ExpressionHandler.get_instance()
   var, var_type = exp_handler.pop_operand()
   if (var_type != 'bool'):
-    raise SemanticError("Result of expression is not of type 'bool'. Found '{}' instead.".format(var_type))
+    raise SemanticError("Result of the expression is not of type 'bool'. Found '{}' instead.".format(var_type))
   jump_quad = Quadruple("GOTOF", var, None, PendingJump())
   quad_stack.push_quad(jump_quad)
   jumps_stack.push_quad(jump_quad)
@@ -437,7 +449,7 @@ def p_flip(p):
     quad_stack.push_quad(quad)
     exp_handler.push_operand(result, 'int')
   else:
-    raise SemanticError("Can't use a change of sign for {} type, just for int type".format(number[1]))
+    raise SemanticError("Can't use a change of sign for {}, just for int type".format(number[1]))
 
 # EMBEDDED ACTION
 def p_push_par(p):
@@ -587,7 +599,7 @@ def p_go_sub(p):
     quad_stack.push_quad(quad)
 
 def p_array_constant(p):
-  ''' array-constant :  ID LBRACKET push_par expression-logical save_array_index_exp RBRACKET
+  ''' array-constant :  ID save_access_id LBRACKET push_par expression-logical save_array_index_exp RBRACKET
   '''
 
 def p_list_const(p):
@@ -621,7 +633,7 @@ def p_assign_array_literal(p):
     else:
       raise SemanticError('Dimension for array ({}) is incorrect'.format(var.name()))
   else:
-    raise SemanticError('{} is an {}, you cannot assign an array literal'.format(var.name(), var.var_type))
+    raise SemanticError("{} is not an array, you can't assign an array literal unless it's an array".format(var.name()))
 
 def p_string(p):
   ''' string : STR'''

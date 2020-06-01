@@ -1,0 +1,25 @@
+player jugadorUno;
+
+var array[10] : int = [10, 42, 4, 2, 90, 8, 100, 72, 1, 0];
+
+function bubble(n : int) : void {
+    var i : int = 0;
+    var j : int = 0;
+
+    loop(i < (n - 1)) {
+        loop(j < (n - i - 1)) {
+            if (array[j] > array[j + 1]) {
+                var temp : int = array[j];
+                array[j] = array[j + 1];
+                array[j + 1] = temp;
+            }
+            j = j + 1;
+        }
+        j = 0;
+        i = i + 1;
+    }
+}
+
+main () {
+    bubble(10);
+}
