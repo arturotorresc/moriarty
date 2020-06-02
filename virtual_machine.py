@@ -106,7 +106,8 @@ class VirtualMachine:
         game_state.initialize_player(left)
         self.__ip += 1
       elif operator in special_functions:
-        self.special_functions(operator, left)
+        action_val = self.special_functions(operator, left)
+        memory.set_address_value(result, action_val)
         self.__ip += 1
       elif operator == 'speak':
         value = memory.get_address_value(result)
@@ -158,19 +159,19 @@ class VirtualMachine:
     game_state = GameState.get_instance()
     
     if operator == 'move':
-      game_state.move_player(player)
+      return game_state.move_player(player)
     elif operator == 'rotate':
-      game_state.rotate_player(player)
+      return game_state.rotate_player(player)
     elif operator == 'shoot':
-      game_state.shoot_enemy(player)
+      return game_state.shoot_enemy(player)
     elif operator == 'gun_loaded?':
-      game_state.gun_loaded(player)
+      return game_state.gun_loaded(player)
     elif operator == 'reload_gun':
-      game_state.reload_gun(player)
+      return game_state.reload_gun(player)
     elif operator == 'enemy?':
-      game_state.enemy_in_front(player)
+      return game_state.enemy_in_front(player)
     elif operator == 'jump':
-      game_state.jump(player)
+      return game_state.jump(player)
   
   # ==================== PRIVATE INTERFACE =======================
   def __get_initial_address(self, var_type):
