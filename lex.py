@@ -9,7 +9,7 @@ tokens = ['BOOLEAN', 'SIGN', 'OPERATOR', 'RELOP', 'LOGICAL_OP' , 'COMMA', 'SEMIC
           'LPAREN', 'RPAREN', 'LCURL', 'RCURL', 'LBRACKET', 'RBRACKET' , 'EQUALS', 'DOTS',
           'INTEGER', 'STR', 'ID'] + list(reserved.values())
 
-t_STR = r'".*\"'
+t_STR = r'"(.*?)"'
 t_SIGN = r'(?:\+|-)'
 t_OPERATOR = r'(?:\*|\/)'
 t_COMMA = r'\,'

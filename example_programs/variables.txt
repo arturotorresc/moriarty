@@ -1,0 +1,36 @@
+player uno;
+player dos;
+
+var i : int = 0;
+var b : bool = true;
+var s : string = "primer string";
+
+function vars(x : int, y : bool, z : string) : string {
+    x = 1;
+    y = false;
+    z = s;
+    return z;
+}
+
+main() {
+    # Declaring all types
+    var an_int : int = 1;
+    var int_arr[5] : int = [2, 3, 4, 5, 6];
+    
+    var a_bool : bool = true;
+    var bool_arr[2] : bool;
+    bool_arr[0] = false;
+    bool_arr[1] = true;
+
+    var a_string : string = "segundo string";
+    var str_arr[3] : string = ["uno", "dos", "tres"];
+
+    # Accessing arrays
+    var i_arr : int = int_arr[3];
+    var b_arr : bool = bool_arr[0];
+    var s_arr : string;
+    s_arr = str_arr[2];
+
+    var first : string = vars(an_int, bool_arr[1], s_arr);
+}
+

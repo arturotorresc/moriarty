@@ -56,8 +56,11 @@ class Memory:
   
   # ================ PUBLIC INTERFACE =====================
   def get_address_value(self, address, pointer_value = False):
-      region, initial_address = self.get_memory_region(address, pointer_value)
-      address_type = self.get_address_type(address, initial_address)
+      if (not pointer_value and address in POINTER_RANGE):
+          region, initial_address, address, address_type = self.get_memory_region(address, pointer_value)
+      else:
+          region, initial_address = self.get_memory_region(address, pointer_value)
+          address_type = self.get_address_type(address, initial_address)
       return region.get_address_value(address, address_type)
           
   def get_address_type(self, address, initial_address):
@@ -86,7 +89,7 @@ class Memory:
           address_type = self.get_address_type(address, POINTER_RANGE[0])
           address = self.__pointers.get_address_value(address, address_type)
           region, initial_address = self.get_memory_region(address)
-          return (region, initial_address)
+          return (region, initial_address, address, address_type)
       else:
           raise Exception("INVALID MEMORY ADDRESS: address '{}' does not belong to any memory region".format(address))
 

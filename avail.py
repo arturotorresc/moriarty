@@ -33,6 +33,7 @@ class Avail:
     else:
       return self.__local_temp
 
+  # Resets local temporals index to 0
   def reset_locals(self):
     self.__local_temp = 0
 
