@@ -1,0 +1,12 @@
+player jugadorUno;
+
+main() {
+  var i : int = 0;
+  loop(i < 20) {
+    var could_move? : bool = move(jugadorUno);
+    if (not could_move?) {
+      rotate(jugadorUno);
+    }
+    i = i + 1;
+  }
+}

@@ -540,8 +540,10 @@ def p_special_function(p):
   '''special_function :'''
   tplayer = symbol_table.get_scope().get_player(p[-2])
   if (tplayer):
-    quad = Quadruple(p[-4], tplayer.player_name, None, None)
-    quad_stack.push_quad(quad)  
+    temp_address = Avail.get_instance().next('bool')
+    exp_handler.push_operand(temp_address, 'bool')
+    quad = Quadruple(p[-4], tplayer.player_name, None, temp_address)
+    quad_stack.push_quad(quad) 
   else:
     raise SemanticError('No player with id: "{}"'.format(p[-2]))
 
