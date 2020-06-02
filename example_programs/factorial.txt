@@ -1,0 +1,17 @@
+player player_name;
+
+function factorialFunc(factorial : int, n : int) : int {
+    var i : int = 1;
+    loop(i <= n) {
+        factorial = factorial * i;
+        i = i + 1;
+    }
+    return factorial;
+}
+
+main() {
+    var n : int = 12;
+    var startingPoint : int = 1;
+
+    var factorialResult : int = factorialFunc(startingPoint, n);
+}

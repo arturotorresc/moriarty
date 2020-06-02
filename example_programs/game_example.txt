@@ -1,0 +1,69 @@
+player moriarty;
+
+function try_shoot() : bool {
+	var did_shoot : bool = false;
+	if (enemy?(moriarty)) {
+		var did_reload : bool = false;
+
+		if (not gun_loaded?(moriarty)) {
+			did_reload = reload_gun(moriarty);
+		}
+
+		if (did_reload) {
+			did_shoot = shoot(moriarty);
+			if (did_shoot) {
+				speak(moriarty, "I just shot an enemy");
+			}
+			else {
+				speak(moriarty, "I missed !");
+			}
+		}
+	}
+
+	return did_shoot;
+}
+
+# In here we are going to create a function
+# that automatically jumps if there is an obstacle
+# and speaks saying they overcame an obstacle.
+function try_evading() : bool {
+	var shot : bool = try_shoot();
+	var jumped : bool = false;
+	var jumped_or_shot : bool;
+
+	if (not shot) {
+		jumped = jump(moriarty);
+		
+		if (jumped) {
+    		speak(moriarty, "I jumped over an obstacle");
+		}
+	}
+
+	return (shot or jumped);
+}
+
+# And to call the functions we place them on the main
+main() {
+	var steps : int = 0;
+	var moving : bool = move(moriarty);
+
+	loop(steps > 0) {
+		if (not moving) {
+			speak(moriarty, "blah");
+			var evade : bool = try_evading();
+			if (not evade) {
+				rotate(moriarty);
+			}
+		}
+		else {
+			steps = steps - 1;
+		}
+
+		moving = move(moriarty);
+	}
+	move(moriarty);
+	move(moriarty);
+	move(moriarty);
+	move(moriarty);
+	var a : bool = try_evading();
+}

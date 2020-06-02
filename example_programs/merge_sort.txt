@@ -1,0 +1,72 @@
+player player_name;
+
+var arr[6] : int = [20, 30, 44, 23, 31, 1];
+# 10, 9, 1, 50, 78, 100, 67, 45, 3, 29, 58, 12, 35, 19, 81];
+
+function merge(arr[6] : int, l : int, m : int, r : int) : void { 
+    speak(player_name, "merge");
+    var i : int;
+    var j : int;
+    var k : int; 
+    var n1 : int = m - l + 1; 
+    var n2 : int =  r - m; 
+  
+    var L[6] : int;
+    var R[6] : int; 
+  
+    i = 0; 
+    loop(i < n1) {
+        L[i] = arr[l + i];
+        i = i + 1;
+    }
+
+    j = 0;
+    loop(j < n2) {
+        R[j] = arr[m + 1 + j]; 
+        j = j + 1;
+    }
+  
+    i = 0;
+    j = 0;
+    k = l;
+
+    loop(i < n1 and j < n2) {
+        if (L[i] <= R[j]) { 
+            arr[k] = L[i]; 
+            i = i + 1;
+        } 
+        else { 
+            arr[k] = R[j]; 
+            j = j + 1; 
+        } 
+        k = k + 1;
+    }
+  
+    loop(i < n1) {
+        arr[k] = L[i]; 
+        i = i + 1;
+        k = k + 1;
+    } 
+  
+    loop(j < n2) { 
+        arr[k] = R[j]; 
+        j = j + 1;
+        k = k + 1;
+    } 
+} 
+  
+function mergeSort(arr[6] : int, l : int, r : int) : void {
+    speak(player_name, "mergesort");
+    if (l < r) { 
+        var m : int = l+(r-l)/2; 
+  
+        mergeSort(arr, l, m); 
+        mergeSort(arr, m + 1, r); 
+  
+        merge(arr, l, m, r); 
+    } 
+} 
+
+main() {
+    mergeSort(arr, 0, 5);
+}
