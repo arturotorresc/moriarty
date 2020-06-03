@@ -118,6 +118,13 @@ export function Instructions(props) {
               </Card.Header>
               <Accordion.Collapse eventKey="2">
                 <Card.Body>
+                <h3 id="variables">Variables</h3>
+                <p>There are three possible types of variables: integers, booleans and strings. It is also possible to declare one-dimension arrays.</p>
+                <pre><code className="code"><span class="hljs-keyword">var</span> i : <span class="hljs-keyword">int</span> = <span class="hljs-number">1</span>;<br></br>
+                <span class="hljs-keyword">var</span> b : <span class="hljs-keyword">bool</span><br></br>
+                <span class="hljs-keyword">var</span> s : <span class="hljs-keyword">string</span> = <span class="hljs-string">"this is a string"</span>;<br></br>
+                <span class="hljs-keyword">var</span> i_array[<span class="hljs-number">10</span>] : <span class="hljs-keyword">int</span>;<br></br>
+                </code></pre>
                 <h3 id="conditionals">Conditionals</h3>
                 <p>You can state whether or not to do something by making use of the conditionals.</p>
                 <pre><code className="code">if (<span class="hljs-name">enemy</span>?(<span class="hljs-name">player_name</span>)</code></pre>

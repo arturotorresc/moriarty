@@ -582,7 +582,7 @@ def p_gen_size(p):
     quad_stack.push_quad(quad)
     func.reset_param_counter()
   else:
-    raise SemanticError('No function with id: "{}"'.format(p[-2]))
+    raise SemanticError('No function with id: "{}"'.format(p[-3]))
 
 # EMBEDDED ACTION
 def p_set_params(p):

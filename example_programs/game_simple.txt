@@ -1,0 +1,39 @@
+player player1;
+
+function something_close() : bool {
+    var jumped : bool = jump(player1);
+    var enemy_near : bool = enemy?(player1);
+
+    return jumped or enemy_near;
+}
+
+function try_shoot() : void {
+    var did_reload : bool;
+    if (not gun_loaded?(player1)) {
+        did_reload = reload_gun(player1);
+    } else {
+        did_reload = true;
+    }
+
+    if (did_reload) {
+        var did_shoot : bool = shoot(player1);
+        if (did_shoot) {
+            speak(player1, "I just shot an enemy");
+        }
+    }
+}
+
+main() {
+    var steps : int = 0;
+    var moved : bool = move(player1);
+
+    loop(steps < 2) {
+        if (moved) {
+            speak(player1, "I moved!");
+            moved = move(player1);
+        } else if (something_close()) {
+            try_shoot();
+        }
+        steps = steps + 1;
+    }
+}

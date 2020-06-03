@@ -1,0 +1,26 @@
+player player1;
+
+main() {
+  var step : int = 3;
+  loop (step > 0) {
+     if (move(player1)) {
+        speak(player1, "I moved");
+     }
+     else {
+        if (enemy?(player1)) {
+           var gun_reloaded : bool;
+           if (not gun_loaded?(player1)) {
+              gun_reloaded = reload_gun(player1);
+           }
+           else {
+              gun_reloaded = true;
+           }
+           if (gun_reloaded) {
+              shoot(player1);
+           }
+        }
+     }
+     step = step -1;
+   }
+
+}

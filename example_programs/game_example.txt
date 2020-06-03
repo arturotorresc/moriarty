@@ -44,12 +44,11 @@ function try_evading() : bool {
 
 # And to call the functions we place them on the main
 main() {
-	var steps : int = 0;
+	var steps : int = 30;
 	var moving : bool = move(moriarty);
 
 	loop(steps > 0) {
 		if (not moving) {
-			speak(moriarty, "blah");
 			var evade : bool = try_evading();
 			if (not evade) {
 				rotate(moriarty);
@@ -61,9 +60,4 @@ main() {
 
 		moving = move(moriarty);
 	}
-	move(moriarty);
-	move(moriarty);
-	move(moriarty);
-	move(moriarty);
-	var a : bool = try_evading();
 }
