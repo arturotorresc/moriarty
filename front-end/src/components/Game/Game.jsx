@@ -17,21 +17,21 @@ export function Game(props) {
       for(let i = 0; i < gameState.map[1]; i++) {
         gridTemp.push((<div className="row">{array.map((element, index) => {
           let content = "";
-          if (index == gameState.goal[0] && i == gameState.goal[1]) {
+          if (index === gameState.goal[0] && i === gameState.goal[1]) {
             content = <FontAwesomeIcon icon={faFlagCheckered} />
           }
           gameState.players.forEach((element, player) => {
-            if (index == element[1][0] && i == element[1][1]) {
+            if (index === element[1][0] && i === element[1][1]) {
               content = <FontAwesomeIcon icon={playerEmoji[player % 5]} />
             }
           });
           gameState.enemies.forEach(element => {
-            if (index == element[0] && i == element[1]) {
+            if (index === element[0] && i === element[1]) {
               content = <FontAwesomeIcon icon={faGhost} />
             }
           });
           gameState.obstacles.forEach(element => {
-            if (index == element[0] && i == element[1]) {
+            if (index === element[0] && i === element[1]) {
               content = <FontAwesomeIcon icon={faFireAlt} />
             }
           });

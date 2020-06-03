@@ -1,0 +1,17 @@
+.modal-content {
+    background-color: black !important;
+    color: white;
+}
+
+.card {
+    background-color: black !important;
+    color: white;
+}
+
+.card-header {
+    background-color: #000001 !important;
+}
+
+.code {
+    color: #e83e8c;
+}

@@ -9,3 +9,10 @@
 .floored {
   align-self: flex-end;
 }
+
+.div-info {
+  margin: 10px;
+  position: absolute;
+  left: 170px;
+  top: 3px;
+}
