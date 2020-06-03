@@ -46,5 +46,6 @@ class Avail:
       self.__global_temp = 0
       self.__local_temp = 0
 
+  # Checks if Scope is in global
   def __is_global(self):
     return Helper.get_instance().is_in_global

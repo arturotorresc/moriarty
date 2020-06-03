@@ -33,6 +33,7 @@ class AddressHandler:
     self.__addresses[LOCAL]['bool'] = 50_000
     self.__addresses[LOCAL]['string'] = 60_000
 
+  # Resets the local temporal var counter
   def reset_local_temps(self):
     self.__addresses[TEMP_LOCALS]['int'] = 100_000
     self.__addresses[TEMP_LOCALS]['bool'] = 110_000
@@ -45,6 +46,7 @@ class AddressHandler:
     string_count = self.__addresses[LOCAL]['string'] - 60_000
     return (int_count, bool_count, string_count)
 
+  # Gets the local temporal used variables
   def get_temp_local_counts(self):
     int_count = self.__addresses[TEMP_LOCALS]['int'] - 100_000
     bool_count = self.__addresses[TEMP_LOCALS]['bool'] - 110_000
@@ -57,6 +59,7 @@ class AddressHandler:
       raise Exception("AddressHandler is a Singleton! Access the instance through: AddressHandler.get_instance()")
     else:
       AddressHandler.__instance = self
+      # Address dictionary with address ranges for each scope & type
       self.__addresses = {
         GLOBAL: {
           'int': 10_000,

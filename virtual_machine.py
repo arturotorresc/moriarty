@@ -21,6 +21,7 @@ class VirtualMachine:
           address = data.constant_table[constant_type][constant_value]
           memory.set_address_value(address, constant_value)
 
+  # Executes all Quadruples and handles each corresponding action
   def execute(self):
     memory = Memory.get_instance()
     next_quad = self.__quadruples[self.__ip]
@@ -133,6 +134,7 @@ class VirtualMachine:
 
     GameState.get_instance().write_game_state()
 
+  # Handles all basic expressions
   def operations(self, operator, left, right):
     if operator == '+':
       return left + right
@@ -158,7 +160,8 @@ class VirtualMachine:
       return left and right
     if operator == 'or':
       return left or right
-    
+  
+  # Flips the sign, or value
   def flip(self, operator, left):
     if operator == 'ABS':
       return abs(left)
@@ -167,6 +170,7 @@ class VirtualMachine:
     if operator == 'not':
       return not left
   
+  # Handles all special functions
   def special_functions(self, operator, player):
     game_state = GameState.get_instance()
     

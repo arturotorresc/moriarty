@@ -13,24 +13,30 @@ class Quadruple:
   def id(self):
     return self.__id
   
+  # Sets id for the Quad
   @id.setter
   def id(self, value):
     self.__id = value
   
+  # Gets operator
   def get_operator(self):
       return self.__operator
 
+  # Gets left operand
   def left_operand(self):
     return self.__left_operand
 
+  # Gets right operand
   def right_operand(self):
     return self.__right_operand
   
+  # Sets jump if result is class PendingJump
   def set_jump(self, jump):
     if not isinstance(self.__result, PendingJump):
       raise Exception("Trying to set a jump but this quadruple does not have a pending jump")
     self.__result = jump
 
+  # Gets result (last value)
   def result(self):
     return self.__result
   
@@ -57,10 +63,12 @@ class QuadrupleStack:
   
   # ================ PUBLIC INTERFACE =====================
 
+  # Gets the next Quadruple to be created
   @classmethod
   def next_quad_id(self):
     return QuadrupleStack.__quad_count
 
+  # Pushes a Quadruple to the stack
   def push_quad(self, quad):
     if not isinstance(quad, Quadruple):
       raise Exception("Type not allowed, expected a 'Quadruple' but found {}".format(type(quad)))
@@ -68,14 +76,17 @@ class QuadrupleStack:
     QuadrupleStack.__quad_count += 1
     self.__quadruple_stack.append(quad)
   
+  # Peek at the last Quadruple in the stack
   def peek_quad(self):
     return self.__quadruple_stack[-1]
   
+  # Pops the last Quadruple in the stack
   def pop_quad(self):
     if not self.__quadruple_stack:
       raise Exception("The Quadruple Stack is empty! Can't pop!")
     return self.__quadruple_stack.pop()
   
+  # Checks if the stack is empty
   def empty(self):
     return len(self.__quadruple_stack) == 0
 

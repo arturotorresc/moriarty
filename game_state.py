@@ -50,6 +50,7 @@ class GameState:
     self.__add_action(['MOVE', player_id, new_position])
     return True
   
+  # Rotates the player counter clock-wise
   def rotate_player(self, player_id):
     player_idx, player_to_rotate = self.__find_player(player_id)
     if not player_to_rotate:
@@ -68,6 +69,7 @@ class GameState:
     self.__add_action(['ROTATE', player_id, direction])
     return True
   
+  # Shoots an enemy if in front
   def shoot_enemy(self, player_id):
     player_idx, player_shooting = self.__find_player(player_id)
     if not player_shooting:
@@ -95,6 +97,7 @@ class GameState:
     self.__add_action(['SHOOT', player_id, front_position])
     return True
   
+  # Checks if gun is loaded with ammo
   def gun_loaded(self, player_id):
     player_idx, player = self.__find_player(player_id)
     if not player:
@@ -105,6 +108,7 @@ class GameState:
     self.__add_action(['GUN_LOADED?', player_id, False])
     return False
   
+  # Reloads gun if ammo left
   def reload_gun(self, player_id):
     player_idx, player = self.__find_player(player_id)
     if not player:
@@ -115,9 +119,11 @@ class GameState:
       return True
     return False
   
+  # Output speech for the player (In text form)
   def speak(self, player_id, expr):
     self.__add_action(['SPEAK', player_id, expr])
   
+  # Checks if an enemy is in front of the player
   def enemy_in_front(self, player_id):
     player_idx, player = self.__find_player(player_id)
     if not player:
@@ -130,6 +136,7 @@ class GameState:
     self.__add_action(['ENEMY?', player_id, False])
     return False
   
+  # Jumps if an obstacle is in front
   def jump(self, player_id):
     player_idx, player_to_move = self.__find_player(player_id)
     if not player_to_move:
@@ -145,7 +152,8 @@ class GameState:
       self.__add_action(['JUMP', player_id, jump_position])
       return True
     return False
-  
+   
+  # Writes the results in the game state json
   def write_game_state(self):
     with open(GAME_STATE_FILE, 'w') as outfile:
       data = {

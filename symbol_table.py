@@ -213,12 +213,15 @@ class Scope:
   def players(self):
     return self.__players
   
+  # Last saved variable to Table
   def get_last_saved_var(self):
     return self.__last_saved_var
   
+  # Last saved function to Table
   def get_last_saved_func(self):
     return self.__last_saved_func
 
+  # Current function called
   @property
   def current_function(self):
     return self.__current_function
@@ -227,6 +230,7 @@ class Scope:
   def current_function(self, current_function):
     self.__current_function = current_function
   
+  # Last accessed array id
   @property
   def last_accessed_id(self):
     return self.__last_accessed_id
@@ -284,6 +288,7 @@ class Scope:
     self.__variables[name] = VariableTable(name, var_type)
     self.__last_saved_var = self.__variables[name]
 
+  # Sets address to the variable.
   def set_variable_address(self):
     var_table = self.get_last_saved_var()
     mem_type = None

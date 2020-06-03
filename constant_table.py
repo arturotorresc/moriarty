@@ -19,7 +19,7 @@ class ConstantTable:
   
   # ================ PUBLIC INTERFACE =====================
 
-  # Inserts a new constant
+  # Inserts a new constant in the Table
   def insert_constant(self, value, var_type):
     if var_type == BOOL:
       value = 0 if not value else 1
@@ -29,13 +29,13 @@ class ConstantTable:
       address = self.__consts[var_type][value]
     else:
       mem_type = CONST
-      # TODO: check const array sizes!!!!!!!!
       address = AddressHandler.get_instance().get_next_address(mem_type, var_type, 1)
       self.__consts[var_type][value] = address
 
     exp_handler = ExpressionHandler.get_instance()
     exp_handler.push_operand(address, var_type)
 
+  # Returns the dictionary with the constant values
   def return_consts(self):
     return self.__consts
 

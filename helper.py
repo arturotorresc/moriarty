@@ -11,6 +11,7 @@ class Helper:
 
   # ================ PUBLIC INTERFACE =====================
 
+  # is_in_global states if the Scope is currently in global
   @property
   def is_in_global(self):
     return self.__is_in_global
@@ -19,6 +20,7 @@ class Helper:
   def is_in_global(self, value):
     self.__is_in_global = value
   
+  # is_in_assignment states if we are currently inside an assignment statement
   @property
   def is_in_assignment(self):
     return self.__is_in_assignment
@@ -27,6 +29,7 @@ class Helper:
   def is_in_assignment(self, value):
     self.__is_in_assignment = value
 
+  # assignment_done states whether an assignment for an id has been done already
   @property
   def assignment_done(self):
     return self.__assignment_done

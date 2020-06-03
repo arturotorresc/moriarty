@@ -34,6 +34,7 @@ def attempt_create_quadruple(operands: List[str]):
     else:
       raise SemanticError("TYPE MISMATCH: Invalid operation, can not [{}] {} [{}]".format(left_op[1], current_operator, right_op[1]))
 
+# Algorithm to create a quadruple for a unary expression (not)
 def attempt_create_quadruple_unary(operands: List[str]):
   current_operator = exp_handler.peek_operator()
   if current_operator in operands:

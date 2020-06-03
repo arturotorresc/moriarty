@@ -55,6 +55,7 @@ class Memory:
     return Memory.__instance
   
   # ================ PUBLIC INTERFACE =====================
+  # Gets address value from address
   def get_address_value(self, address, pointer_value = False):
       if (not pointer_value and address in POINTER_RANGE):
           region, initial_address, address, address_type = self.get_memory_region(address, pointer_value)
@@ -62,7 +63,8 @@ class Memory:
           region, initial_address = self.get_memory_region(address, pointer_value)
           address_type = self.get_address_type(address, initial_address)
       return region.get_address_value(address, address_type)
-          
+
+  # Gets address type from address and the initial_address
   def get_address_type(self, address, initial_address):
       if initial_address <= address <= initial_address + MEM_SIZE - 1:
           return 'int'
@@ -72,6 +74,8 @@ class Memory:
           return 'string'
       raise Exception("INVALID MEMORY ADDRESS: {} is not a valid address.".format(address))
 
+  # Gets memory region from address
+  # pointer_value: if true, returns pointer MemoryRegion, if not, returns value inside pointer
   def get_memory_region(self, address, set_pointer = False):
       if address in GLOBAL_RANGE:
           return (self.__global, GLOBAL_RANGE[0])
@@ -93,11 +97,13 @@ class Memory:
       else:
           raise Exception("INVALID MEMORY ADDRESS: address '{}' does not belong to any memory region".format(address))
 
+  # Sets value in given address
   def set_address_value(self, address, value, set_pointer = False):
       region, initial_address = self.get_memory_region(address, set_pointer)
       address_type = self.get_address_type(address, initial_address)
       region.set_address_value(address, value, address_type)
 
+  # Pushes a new MemoryRegion object to the local & local temporal lists
   def push_locals(self, dir_func_map):
       self.__local.append(MemoryRegion())
       self.__temp_local.append(MemoryRegion())
@@ -105,6 +111,7 @@ class Memory:
       self.__check_locals_out_of_memory()
       self.__function_stack.append(dir_func_map)
   
+  # Pops the last MemoryRegion from the local & local temporal lists
   def pop_locals(self):
     self.__local.pop()
     self.__temp_local.pop()
@@ -112,13 +119,16 @@ class Memory:
     self.__unassign_mem(dir_func_map)
     self.__function_stack.pop()
 
+  # Method to use the second to last MemoryRegion for locals
   def use_past_local(self):
       if (len(self.__local) > 1):
         self.__current_memory_local = -2
 
+  # Method to use the last MemoryRegion for locals
   def unuse_past_local(self):
       self.__current_memory_local = -1
 
+  # Prints all addresses
   def print_addresses(self):
       print("=======GLOBAL:")
       self.__global.print_region()

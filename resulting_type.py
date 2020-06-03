@@ -78,6 +78,7 @@ class ResultingType:
   def get_type(self, operator, left, right):
     return ResultingType.__cubeType[operator][left][right]
   
+  # Get resulting type for unary operatator (not)
   @classmethod
   def get_type_unary(self, operator, operand):
     return ResultingType.__cubeTypeUnary[operator][operand]

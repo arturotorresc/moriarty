@@ -28,12 +28,15 @@ class JumpsStack:
   
   # ================ PUBLIC INTERFACE =====================
 
+  # Pushes a quadruple to the jump_stack
   def push_quad(self, quad):
     self.__jumps_stack.append(quad)
   
+  # Peek at the last quadruple in the jump_stack
   def peek_quad(self):
     return self.__jumps_stack[-1]
   
+  # Pops the last quadruple in the jump_stack
   def pop_quad(self):
     if not self.__jumps_stack:
       raise Exception("The Jumps Stack is empty! Can't pop!")

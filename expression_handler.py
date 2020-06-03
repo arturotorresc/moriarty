@@ -1,6 +1,7 @@
 from collections import deque
 from collections import namedtuple
 
+# This class is in charge of handling the operator stack and the operand stack for the expressions.
 class ExpressionHandler:
   # ================ STATIC ATTRIBUTES =====================
 
@@ -33,6 +34,7 @@ class ExpressionHandler:
     if (self.__operator_stack):
       return self.__operator_stack[-1]
   
+  # Peeks at the last operand in the stack
   def peek_operand(self):
     if (self.__operand_stack):
       return self.__operand_stack[-1]
