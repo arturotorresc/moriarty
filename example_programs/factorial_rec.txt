@@ -1,0 +1,13 @@
+player p;
+
+function factorial(n : int) : int {
+  if (n == 0) {
+    return 1;
+  } else {
+    return factorial(n - 1) * n;
+  }
+}
+
+main() {
+  var ans : int = factorial(5);
+}

@@ -1,0 +1,9 @@
+player p1;
+
+main() {
+  loop(think(bool)) {
+    speak(p1, "i am here");
+  }
+
+  var i : int = think(int) + 6;
+}

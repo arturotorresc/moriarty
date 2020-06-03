@@ -124,7 +124,7 @@ class GameState:
       raise Exception('Trying to check if enemy is in front but {} does not exist'.format(player_id))
     player_direction = self.__players_direction[player_idx]
     front_position = self.__get_position_in_front(player[1].copy(), player_direction)
-    if self.__enemy_at_position(front_position):
+    if self.__enemy_at_position(front_position)[1]:
       self.__add_action(['ENEMY?', player_id, True])
       return True
     self.__add_action(['ENEMY?', player_id, False])
@@ -137,7 +137,7 @@ class GameState:
     
     player_direction = self.__players_direction[player_idx]
     front_position = self.__get_position_in_front(player_to_move[1].copy(), player_direction)
-    if self.__obstacle_at_position(front_position):
+    if self.__obstacle_at_position(front_position)[1]:
       jump_position = self.__get_position_in_front(front_position.copy(), player_direction)
       if self.__out_of_bounds(jump_position):
         return False

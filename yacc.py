@@ -40,17 +40,17 @@ def p_init_game(p):
   quad_stack.push_quad(quad)
 
 # DEBUG ACTION
-def p_debug_stuff(p):
-  ''' debug :'''
-  qs = []
-  while not quad_stack.empty():
-    qs.append(quad_stack.pop_quad())
-  i = len(qs) - 1
-  while i >= 0:
-    quad = qs[i]
-    print("====== QUADRUPLE {} =====".format(quad.id))
-    print("( op: {} , l_opnd: {}, r_opnd: {}, res: {} )\n".format(quad.get_operator(), quad.left_operand(), quad.right_operand(), quad.result()))
-    i -= 1
+# def p_debug_stuff(p):
+#   ''' debug :'''
+#   qs = []
+#   while not quad_stack.empty():
+#     qs.append(quad_stack.pop_quad())
+#   i = len(qs) - 1
+#   while i >= 0:
+#     quad = qs[i]
+#     print("====== QUADRUPLE {} =====".format(quad.id))
+#     print("( op: {} , l_opnd: {}, r_opnd: {}, res: {} )\n".format(quad.get_operator(), quad.left_operand(), quad.right_operand(), quad.result()))
+#     i -= 1
 
 def p_pickle(p):
   ''' pickle :'''
@@ -521,8 +521,17 @@ def p_function_call(p):
                     | ENEMY LPAREN ID RPAREN special_function
                     | RELOAD_GUN LPAREN ID RPAREN special_function
                     | GUN_LOADED LPAREN ID RPAREN special_function
+                    | THINK LPAREN type RPAREN think_function
                     | ID LPAREN push_par gen_size function-call-1
   '''
+
+# EMBEDDED ACTION
+def p_think_function(p):
+  ''' think_function :'''
+  temp_address = Avail.get_instance().next(p[-2])
+  exp_handler.push_operand(temp_address, p[-2])
+  quad = Quadruple('THINK', p[-2], None, temp_address)
+  quad_stack.push_quad(quad)
 
 # EMBEDDED ACTION
 def p_speak_function(p):
@@ -647,6 +656,6 @@ def p_empty(p):
 
 def p_error(p):
   print(p)
-  print("Syntax error on input!")
+  raise Exception("Syntax error on input!")
 
 parser = yacc.yacc()

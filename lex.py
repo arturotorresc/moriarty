@@ -3,7 +3,7 @@ import ply.lex as lex
 reserved = {'if': 'IF', 'else': 'ELSE', 'loop': 'LOOP', 'player': 'PLAYER', 'var': 'VAR', 'function': 'FUNCTION',
             'string': 'STRING', 'int': 'INT', 'bool': 'BOOL' ,
             'move': 'MOVE', 'speak': 'SPEAK', 'rotate': 'ROTATE', 'shoot': 'SHOOT', 'jump': 'JUMP',
-            'enemy?': 'ENEMY', 'reload_gun': 'RELOAD_GUN', 'gun_loaded?': 'GUN_LOADED',
+            'enemy?': 'ENEMY', 'reload_gun': 'RELOAD_GUN', 'gun_loaded?': 'GUN_LOADED', 'think': 'THINK',
             'void': 'VOID', 'not': 'NOT', 'return': 'RETURN', 'main': 'MAIN'}
 tokens = ['BOOLEAN', 'SIGN', 'OPERATOR', 'RELOP', 'LOGICAL_OP' , 'COMMA', 'SEMICOLON',
           'LPAREN', 'RPAREN', 'LCURL', 'RCURL', 'LBRACKET', 'RBRACKET' , 'EQUALS', 'DOTS',
