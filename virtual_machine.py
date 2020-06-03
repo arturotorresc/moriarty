@@ -26,8 +26,6 @@ class VirtualMachine:
     next_quad = self.__quadruples[self.__ip]
     while next_quad[0] != 'END_MAIN':
       operator, left, right, result = next_quad
-      if operator == "GOSUB":
-        memory.print_addresses()
 
       if operator in ['+', '-', '*', '/', '<=', '>=', '<', '>', '!=', '==', 'and', 'or']:
         left_val = memory.get_address_value(left)
@@ -113,12 +111,26 @@ class VirtualMachine:
         value = memory.get_address_value(result)
         GameState.get_instance().speak(left, value)
         self.__ip += 1
+      elif operator == 'THINK':
+        value = input('value must be {}: '.format(left))
+        if left == "int":
+          try:
+            value = int(value)
+          except:
+            raise Exception("TYPE MISMATCH: {} is not a valid int".format(value))
+        elif left == "bool":
+          if value in ['f', 'false', 'FALSE', 'no', 'n', 'NO', '0', 'null', 'none', 'nil']:
+            value = 0
+          else:
+            value = 1
+        memory.set_address_value(result, value)
+        self.__ip += 1
       # Quitar este else
       else:
         self.__ip += 1
         
       next_quad = self.__quadruples[self.__ip]
-    print('PROGRAM OVER')
+
     GameState.get_instance().write_game_state()
 
   def operations(self, operator, left, right):

@@ -1,0 +1,7 @@
+player jugadorUno;
+
+main() {
+  shoot(jugadorUno);
+  var my_input : int = think(int);
+  shoot(jugadorUno);
+}

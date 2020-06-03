@@ -20,6 +20,7 @@ jump
 enemy?
 reload_gun
 gun_loaded?
+think
 void
 not
 return
