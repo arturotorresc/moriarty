@@ -1,0 +1,20 @@
+player jugadorUno;
+
+# Returns the position of the element if found
+# otherwise, returns -1;
+function find(arr[10] : int, elem : int) : int {
+  var pos : int = -1;
+  var idx : int = 0;
+  loop (idx < 10) {
+    if (arr[idx] == elem) {
+      pos = idx;
+    }
+    idx = idx + 1;
+  }
+  return pos;
+}
+
+main() {
+  var arr[10] : int = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  var pos : int = find(arr, 6);
+}
